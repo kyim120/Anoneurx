@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import OSPage from "./OSPage";
 import OSSectionHeader from "./OSSectionHeader";
-import OSCard, { Chip } from "./OSCard";
+import ShowcaseCard from "@/components/cards/ShowcaseCard";
 import { projects } from "./data";
-import { Star, FolderGit2, Code2 } from "lucide-react";
+import { FolderGit2, Code2 } from "lucide-react";
 
 const OSProjects = () => {
   const [q, setQ] = useState("");
@@ -43,25 +43,20 @@ const OSProjects = () => {
           </button>
         ))}
       </div>
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((p) => (
-          <OSCard
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filtered.map((p, i) => (
+          <ShowcaseCard
             key={p.id}
+            index={i}
             title={p.name}
             description={p.description}
             icon={Code2}
-            meta={
-              <>
-                <Chip>{p.language}</Chip>
-                <span className="inline-flex items-center gap-1">
-                  <Star className="h-3 w-3" />
-                  {p.stars.toLocaleString()}
-                </span>
-                {p.tags.map((t) => (
-                  <Chip key={t}>{t}</Chip>
-                ))}
-              </>
-            }
+            category={p.language}
+            status={`${(p.stars / 1000).toFixed(1)}k stars`}
+            tags={p.tags}
+            codeLink={`https://github.com/anoneurx/${p.id}`}
+            liveLink={`/opensource/projects#${p.id}`}
+            liveLabel="Details"
           />
         ))}
       </div>

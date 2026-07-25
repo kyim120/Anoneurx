@@ -96,7 +96,7 @@ const Research = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filtered.map((paper, i) => (
                   <motion.div key={paper.id} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ delay: (i % 3) * 0.08 }}>
-                    <Link to={`/read-paper/${paper.id}`} className="block h-full">
+                    <Link to={`/read/${(paper as any).paperId || paper.id}`} className="block h-full">
                       <Card className="bg-white/[0.03] backdrop-blur-2xl border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 h-full flex flex-col group">
                         <CardContent className="p-6 flex flex-col flex-1 space-y-3">
                           <div className="flex items-center justify-between">

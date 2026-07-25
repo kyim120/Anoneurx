@@ -9,6 +9,7 @@ import {
 import PageTransition from '@/components/PageTransition';
 import { fetchPortfolio, subscribe } from '@/lib/teamStore';
 import type { TeamPortfolio as TeamPortfolioT } from '@/data/teamPortfolios';
+import FacultyPortfolio from './FacultyPortfolio';
 
 /* -------------------------------------------------------------------------- */
 /*  Editorial design tokens — warm ink on soft paper, no neon                  */
@@ -525,6 +526,10 @@ const TeamPortfolio: React.FC = () => {
     );
   }
   if (!profile) return <Navigate to="/team" replace />;
+
+  // Route to the academic layout for university faculty.
+  if (profile.kind === 'faculty') return <FacultyPortfolio />;
+
 
   const marqueeItems = (profile.favoriteTech && profile.favoriteTech.length > 0
     ? profile.favoriteTech

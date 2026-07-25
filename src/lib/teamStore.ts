@@ -78,22 +78,29 @@ export async function fetchAllPortfolios(): Promise<TeamPortfolio[]> {
   if (cache) return cache;
   if (cachePromise) return cachePromise;
   cachePromise = (async () => {
-    const { data, error } = await supabase
-      .from(TABLE)
-      .select('*')
-      .order('updated_at', { ascending: false });
-    if (error) {
-      console.error('team_portfolios fetch failed', error);
-      return Object.values(teamPortfolios);
+    try {
+      const { data, error } = await supabase
+        .from(TABLE)
+        .select('*')
+        .order('updated_at', { ascending: false });
+      if (error || !data) {
+        console.warn('team_portfolios fetch warning, falling back to seeds:', error);
+        cache = Object.values(teamPortfolios);
+        return cache;
+      }
+      const dbMap = new Map<string, TeamPortfolio>();
+      (data as Row[]).forEach((r) => dbMap.set(r.slug, rowToPortfolio(r)));
+      // Merge seeds that aren't in DB
+      Object.values(teamPortfolios).forEach((s) => {
+        if (!dbMap.has(s.slug)) dbMap.set(s.slug, s);
+      });
+      cache = Array.from(dbMap.values());
+      return cache;
+    } catch (err) {
+      console.warn('team_portfolios fetch exception, falling back to seeds:', err);
+      cache = Object.values(teamPortfolios);
+      return cache;
     }
-    const dbMap = new Map<string, TeamPortfolio>();
-    (data as Row[]).forEach((r) => dbMap.set(r.slug, rowToPortfolio(r)));
-    // Merge seeds that aren't in DB
-    Object.values(teamPortfolios).forEach((s) => {
-      if (!dbMap.has(s.slug)) dbMap.set(s.slug, s);
-    });
-    cache = Array.from(dbMap.values());
-    return cache;
   })();
   const result = await cachePromise;
   cachePromise = null;
@@ -101,9 +108,13 @@ export async function fetchAllPortfolios(): Promise<TeamPortfolio[]> {
 }
 
 export async function fetchPortfolio(slug: string): Promise<TeamPortfolio | undefined> {
-  const { data, error } = await supabase.from(TABLE).select('*').eq('slug', slug).maybeSingle();
-  if (error) console.error('fetchPortfolio', error);
-  if (data) return rowToPortfolio(data as Row);
+  try {
+    const { data, error } = await supabase.from(TABLE).select('*').eq('slug', slug).maybeSingle();
+    if (error) console.warn('fetchPortfolio error:', error);
+    if (data) return rowToPortfolio(data as Row);
+  } catch (err) {
+    console.warn('fetchPortfolio exception:', err);
+  }
   return teamPortfolios[slug];
 }
 

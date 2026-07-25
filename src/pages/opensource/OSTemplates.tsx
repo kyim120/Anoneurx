@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import OSPage from "./OSPage";
 import OSSectionHeader from "./OSSectionHeader";
-import OSCard, { Chip } from "./OSCard";
+import ShowcaseCard from "@/components/cards/ShowcaseCard";
 import { templates } from "./data";
 import { LayoutGrid, Layout } from "lucide-react";
 
@@ -17,9 +17,17 @@ const OSTemplates = () => {
         onSearchChange={setQ}
         icon={LayoutGrid}
       />
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((t) => (
-          <OSCard key={t.id} title={t.name} description={t.description} icon={Layout} meta={<Chip>{t.stack}</Chip>} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filtered.map((t, i) => (
+          <ShowcaseCard
+            key={t.id}
+            index={i}
+            title={t.name}
+            description={t.description}
+            icon={Layout}
+            category={t.stack}
+            tags={[t.stack]}
+          />
         ))}
       </div>
     </OSPage>

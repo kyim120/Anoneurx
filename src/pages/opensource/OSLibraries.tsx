@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import OSPage from "./OSPage";
 import OSSectionHeader from "./OSSectionHeader";
-import OSCard, { Chip } from "./OSCard";
+import ShowcaseCard from "@/components/cards/ShowcaseCard";
 import { libraries } from "./data";
 import { Library, BookOpen } from "lucide-react";
 
@@ -28,19 +28,18 @@ const OSLibraries = () => {
           <button key={l} onClick={() => setLang(l)} className={`rounded-full border px-3 py-1 text-xs ${lang === l ? "border-neutral-900 bg-neutral-900 text-white dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900" : "border-neutral-300 dark:border-neutral-700"}`}>{l}</button>
         ))}
       </div>
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((l) => (
-          <OSCard
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filtered.map((l, i) => (
+          <ShowcaseCard
             key={l.id}
+            index={i}
             title={l.name}
             description={l.description}
             icon={BookOpen}
-            meta={
-              <>
-                <Chip>{l.language}</Chip>
-                <Chip>{l.downloads} downloads</Chip>
-              </>
-            }
+            category={l.language}
+            status={`${l.downloads} dl`}
+            tags={[l.language]}
+            codeLink={`https://github.com/anoneurx/${l.id}`}
           />
         ))}
       </div>

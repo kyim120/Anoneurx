@@ -14,7 +14,8 @@ import PrivateLayout from './layouts/PrivateLayout';
 // Lazy-loaded Public Pages
 import Index from './pages/marketing/Index';
 const About = React.lazy(() => import('./pages/marketing/About'));
-const Portfolio = React.lazy(() => import('./pages/projects/Portfolio'));
+const Sponsors = React.lazy(() => import('./pages/marketing/Sponsors'));
+const BlackwallServer = React.lazy(() => import('./pages/blackwall/BlackwallServer'));
 
 const Collaboration = React.lazy(() => import('./pages/collaboration/Collaboration'));
 const CollaborationForm = React.lazy(() => import('./pages/collaboration/CollaborationForm'));
@@ -25,6 +26,7 @@ const BlogsAll = React.lazy(() => import('./pages/blogs/BlogsAll'));
 const ReadBlog = React.lazy(() => import('./pages/blogs/ReadBlog'));
 const Research = React.lazy(() => import('./pages/research/Research'));
 const ReadPaper = React.lazy(() => import('./pages/research/ReadPaper'));
+const SharePaper = React.lazy(() => import('./pages/research/SharePaper'));
 const ViewInJournal = React.lazy(() => import('./pages/research/ViewInJournal'));
 const Contact = React.lazy(() => import('./pages/marketing/Contact'));
 const Team = React.lazy(() => import('./pages/community/Team'));
@@ -309,9 +311,14 @@ function App() {
                   <Route path="packages" element={<OSPackages />} />
                   <Route path="templates" element={<OSTemplates />} />
                   <Route path="vscode-extensions" element={<OSVSCodeExtensions />} />
+                  <Route path="showcase" element={<OSShowcase />} />
+                  <Route path="sponsors" element={<Sponsors />} />
+                  <Route path="contributors" element={<ContributorsPage />} />
                 </Route>
                 <Route path="about" element={<About />} />
-                <Route path="portfolio" element={<Portfolio />} />
+                <Route path="sponsors" element={<Sponsors />} />
+                <Route path="contributors" element={<Navigate to="/contributions/contributors" replace />} />
+                <Route path="portfolio" element={<Navigate to="/" replace />} />
                 <Route path="community" element={<Community />} />
                 <Route path="community/events" element={<CommunityEvents />} />
                 <Route path="community/events/upcoming" element={<UpcomingEvents />} />
@@ -351,7 +358,9 @@ function App() {
                 <Route path="blogs/all" element={<BlogsAll />} />
                 <Route path="blog/:id" element={<ReadBlog />} />
                 <Route path="research" element={<Research />} />
+                <Route path="read/:id" element={<ReadPaper />} />
                 <Route path="read-paper/:id" element={<ReadPaper />} />
+                <Route path="share/:code" element={<SharePaper />} />
                 <Route path="view-in-journal" element={<ViewInJournal />} />
                 <Route path="contact" element={<Contact />} />
                 <Route path="team" element={<Team />} />
@@ -425,6 +434,7 @@ function App() {
                 <Route path="blackwall/architecture" element={<BlackwallArchitecture />} />
                 <Route path="blackwall/security" element={<BlackwallSecurity />} />
                 <Route path="blackwall/performance" element={<BlackwallPerformance />} />
+                <Route path="blackwall/server" element={<BlackwallServer />} />
                 <Route path="blackwall/login" element={<Auth />} />
                 <Route path="docs/blackwall" element={<BlackwallDocs />} />
 

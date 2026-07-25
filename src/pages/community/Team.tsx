@@ -2,17 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, Search, Mail, Linkedin, Github, MapPin, ArrowRight, X, SlidersHorizontal } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Users, Mail, Linkedin, Github, MapPin, ArrowRight } from 'lucide-react';
 import PageTransition from '@/components/PageTransition';
 import { fetchAllPortfolios, subscribe, availabilityOf } from '@/lib/teamStore';
 import type { TeamPortfolio } from '@/data/teamPortfolios';
+import MemberOverlayer, { Member } from '@/components/MemberOverlayer';
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
-const slugifyDept = (d: string) => d.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
 type SortKey = 'relevance' | 'name-asc' | 'name-desc' | 'department' | 'availability';
 type Availability = 'all' | 'open' | 'limited' | 'closed';
@@ -23,6 +19,25 @@ const AVAIL_BADGE: Record<Exclude<Availability, 'all'>, string> = {
   closed: 'bg-rose-500/15 text-rose-300 border-rose-500/30',
 };
 
+const mapPortfolioToMember = (m: TeamPortfolio): Member => ({
+  name: m.name,
+  role: m.title,
+  department: m.department,
+  badges: [m.department, availabilityOf(m)].filter(Boolean),
+  bio: m.tagline,
+  fullBio: m.about?.bio || m.tagline,
+  image: m.photo,
+  expertise: m.skills?.core || [],
+  education: m.education,
+  socials: {
+    linkedin: m.linkedin,
+    github: m.github,
+    email: m.email,
+    twitter: m.twitter,
+    website: m.website,
+  }
+});
+
 const Team = () => {
   const [members, setMembers] = useState<TeamPortfolio[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +45,7 @@ const Team = () => {
   const [dept, setDept] = useState<string>('All');
   const [avail, setAvail] = useState<Availability>('all');
   const [sort, setSort] = useState<SortKey>('relevance');
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -43,11 +59,6 @@ const Team = () => {
     const unsub = subscribe(load);
     return () => { mounted = false; unsub(); };
   }, []);
-
-  const departments = useMemo(
-    () => ['All', ...Array.from(new Set(members.map((m) => m.department).filter(Boolean)))],
-    [members],
-  );
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -82,7 +93,6 @@ const Team = () => {
 
   const ceo = sorted.find((m) => /ceo|founder/i.test(m.title));
   const others = sorted.filter((m) => m !== ceo);
-  const hasFilters = query || dept !== 'All' || avail !== 'all' || sort !== 'relevance';
 
   return (
     <PageTransition>
@@ -99,86 +109,28 @@ const Team = () => {
               </p>
             </motion.div>
 
-            {/* Search + advanced filters */}
-            <div className="space-y-3">
-              <div className="flex flex-col md:flex-row gap-3">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-                  <Input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search by name, role, skill, focus, location…"
-                    className="pl-9 bg-white/[0.04] border-white/10 text-white placeholder:text-white/40"
-                  />
-                  {query && (
-                    <button onClick={() => setQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-white/40 hover:text-white/80">
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-
-                <Select value={avail} onValueChange={(v) => setAvail(v as Availability)}>
-                  <SelectTrigger className="md:w-[180px] bg-white/[0.04] border-white/10 text-white">
-                    <SelectValue placeholder="Availability" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All availability</SelectItem>
-                    <SelectItem value="open">Open to work</SelectItem>
-                    <SelectItem value="limited">Limited</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={sort} onValueChange={(v) => setSort(v as SortKey)}>
-                  <SelectTrigger className="md:w-[200px] bg-white/[0.04] border-white/10 text-white">
-                    <SlidersHorizontal className="w-3.5 h-3.5 mr-1.5 text-white/50" />
-                    <SelectValue placeholder="Sort" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="relevance">Most recent</SelectItem>
-                    <SelectItem value="name-asc">Name (A → Z)</SelectItem>
-                    <SelectItem value="name-desc">Name (Z → A)</SelectItem>
-                    <SelectItem value="department">Department</SelectItem>
-                    <SelectItem value="availability">Availability</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {departments.map((d) => (
-                  <Button
-                    key={d}
-                    size="sm"
-                    variant={dept === d ? 'default' : 'outline'}
-                    onClick={() => setDept(d)}
-                    className={dept === d ? 'bg-primary hover:bg-primary/90' : 'border-white/10 text-white/70 bg-transparent hover:bg-white/[0.06]'}
-                  >
-                    {d}
-                  </Button>
-                ))}
-                {hasFilters && (
-                  <Button size="sm" variant="ghost" onClick={() => { setQuery(''); setDept('All'); setAvail('all'); setSort('relevance'); }} className="text-white/60 hover:text-white">
-                    <X className="w-3.5 h-3.5 mr-1" /> Reset
-                  </Button>
-                )}
-              </div>
-
-              <div className="text-xs text-white/40">
-                {loading ? 'Loading team…' : `${sorted.length} member${sorted.length === 1 ? '' : 's'} found`}
-              </div>
-            </div>
-
             {/* CEO highlight */}
             {ceo && (
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-                <Link to={`/team/${slugifyDept(ceo.department)}/${ceo.slug}`}>
+                <div 
+                  onClick={() => setSelectedMember(mapPortfolioToMember(ceo))}
+                  className="cursor-pointer"
+                >
                   <Card className="bg-gradient-to-br from-primary/15 to-white/[0.03] backdrop-blur-2xl border-primary/20 hover:border-primary/40 transition-all group">
                     <CardContent className="p-6 md:p-8 grid md:grid-cols-[180px_1fr] gap-6 items-center">
                       <div className="relative mx-auto md:mx-0">
                         <div className="absolute -inset-2 rounded-full bg-primary/30 blur-2xl" />
-                        <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full border-2 border-white/15 bg-gradient-to-br from-primary/40 to-white/10 flex items-center justify-center text-4xl md:text-5xl font-semibold tracking-tight text-white">
-                          {ceo.name.split(' ').map(n => n[0]).slice(0,2).join('')}
-                        </div>
+                        {ceo.photo ? (
+                          <img 
+                            src={ceo.photo} 
+                            alt={ceo.name}
+                            className="relative w-36 h-36 md:w-44 md:h-44 rounded-full border-2 border-white/15 object-cover shadow-xl"
+                          />
+                        ) : (
+                          <div className="relative w-36 h-36 md:w-44 md:h-44 rounded-full border-2 border-white/15 bg-gradient-to-br from-primary/40 to-white/10 flex items-center justify-center text-4xl md:text-5xl font-semibold tracking-tight text-white shadow-xl">
+                            {ceo.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                          </div>
+                        )}
                       </div>
                       <div className="space-y-3">
                         <Badge className="bg-primary/20 text-primary border-primary/30">{ceo.department}</Badge>
@@ -186,12 +138,12 @@ const Team = () => {
                         <p className="text-primary/90">{ceo.title}</p>
                         <p className="text-white/65 max-w-2xl">{ceo.tagline}</p>
                         <div className="flex items-center gap-2 text-sm text-white/70 group-hover:text-primary transition-colors pt-2">
-                          View full portfolio <ArrowRight className="w-4 h-4" />
+                          View details <ArrowRight className="w-4 h-4" />
                         </div>
                       </div>
                     </CardContent>
                   </Card>
-                </Link>
+                </div>
               </motion.div>
             )}
 
@@ -218,7 +170,10 @@ const Team = () => {
                         variants={fadeUp}
                         transition={{ delay: (i % 4) * 0.06 }}
                       >
-                        <Link to={`/team/${slugifyDept(m.department)}/${m.slug}`}>
+                        <div 
+                          onClick={() => setSelectedMember(mapPortfolioToMember(m))}
+                          className="cursor-pointer h-full"
+                        >
                           <Card className="bg-white/[0.03] backdrop-blur-2xl border-white/[0.08] hover:bg-white/[0.06] hover:border-primary/30 transition-all h-full group">
                             <CardContent className="p-5 space-y-3">
                               <div className="flex items-center gap-3">
@@ -245,17 +200,10 @@ const Team = () => {
                                   <span key={s} className="text-[10px] text-white/60 px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">{s}</span>
                                 ))}
                               </div>
-                              <div className="flex items-center justify-between pt-2 border-t border-white/[0.06]">
-                                <div className="flex gap-2 text-white/40">
-                                  {m.email && <a onClick={(e) => e.stopPropagation()} href={`mailto:${m.email}`} className="hover:text-primary"><Mail className="w-3.5 h-3.5" /></a>}
-                                  {m.linkedin && <a onClick={(e) => e.stopPropagation()} target="_blank" rel="noreferrer" href={m.linkedin} className="hover:text-blue-400"><Linkedin className="w-3.5 h-3.5" /></a>}
-                                  {m.github && <a onClick={(e) => e.stopPropagation()} target="_blank" rel="noreferrer" href={m.github} className="hover:text-white"><Github className="w-3.5 h-3.5" /></a>}
-                                </div>
-                                <ArrowRight className="w-3.5 h-3.5 text-white/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
-                              </div>
+                              
                             </CardContent>
                           </Card>
-                        </Link>
+                        </div>
                       </motion.div>
                     );
                   })}
@@ -265,6 +213,12 @@ const Team = () => {
           </div>
         </div>
       </div>
+
+      {/* Member Overlayer Modal Component */}
+      <MemberOverlayer
+        member={selectedMember}
+        onClose={() => setSelectedMember(null)}
+      />
     </PageTransition>
   );
 };

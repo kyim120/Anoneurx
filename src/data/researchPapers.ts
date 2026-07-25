@@ -3,6 +3,7 @@ export const researchPapers = [
   // AI & Machine Learning Papers
   {
     id: 1,
+    paperId: "vwxyz",
     title: "Advanced Neural Networks for Autonomous Navigation Systems",
     authors: ["Dr. Sarah Chen", "Prof. Michael Rodriguez", "Dr. Aisha Patel"],
     category: "AI & Machine Learning",
@@ -33,6 +34,7 @@ export const researchPapers = [
   },
   {
     id: 2,
+    paperId: "abcde",
     title: "Transformer Models for Real-Time Language Translation in Space Communications",
     authors: ["Dr. Elena Kowalski", "Prof. Zhang Wei", "Dr. Marcus Johnson"],
     category: "AI & Machine Learning",
@@ -65,6 +67,7 @@ export const researchPapers = [
   // Robotics Papers
   {
     id: 3,
+    paperId: "qmzkl",
     title: "Robotic Swarm Intelligence for Space Exploration Missions",
     authors: ["Dr. James Liu", "Prof. Elena Volkov", "Dr. Ahmed Hassan"],
     category: "Robotics & Space",
@@ -94,10 +97,10 @@ export const researchPapers = [
     doi: "10.1109/TRO.2024.0234567"
   },
 
-  // Continue with more detailed papers...
   // Space Technology Papers
   {
     id: 4,
+    paperId: "qcsat",
     title: "Quantum Computing Applications in Satellite Communication",
     authors: ["Dr. Maria Gonzalez", "Prof. David Kim", "Dr. Lisa Thompson"],
     category: "Space Technology",
@@ -127,9 +130,9 @@ export const researchPapers = [
     doi: "10.1038/s41534-024-00789-x"
   },
 
-  // Add more papers with similar detailed structure...
   {
     id: 5,
+    paperId: "q6gwn",
     title: "6G Wireless Networks: Quantum-Enhanced Communication Protocols",
     authors: ["Dr. Alex Thompson", "Prof. Yuki Tanaka", "Dr. Sophie Martin"],
     category: "Networking & Communications",

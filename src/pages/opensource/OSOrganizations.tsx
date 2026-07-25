@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import OSPage from "./OSPage";
 import OSSectionHeader from "./OSSectionHeader";
-import OSCard, { Chip } from "./OSCard";
+import ShowcaseCard from "@/components/cards/ShowcaseCard";
 import { organizations } from "./data";
 import { Building2, Users } from "lucide-react";
 
@@ -21,19 +21,17 @@ const OSOrganizations = () => {
         placeholder="Search organizations"
         icon={Building2}
       />
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((o) => (
-          <OSCard
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filtered.map((o, i) => (
+          <ShowcaseCard
             key={o.id}
+            index={i}
             title={o.name}
             description={o.description}
             icon={Users}
-            meta={
-              <>
-                <Chip>{o.members} members</Chip>
-                <Chip>{o.projects} projects</Chip>
-              </>
-            }
+            category="Org"
+            status={`${o.members} members`}
+            tags={[`${o.projects} projects`]}
           />
         ))}
       </div>

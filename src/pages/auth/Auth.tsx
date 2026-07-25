@@ -168,9 +168,9 @@ const Auth = () => {
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t border-white/10" />
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
+                {/* <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-[#121212] px-2 text-gray-400">Or continue with</span>
-                </div>
+                </div> */}
               </div>
 
               {/* <div className="flex justify-center gap-3">
@@ -184,9 +184,9 @@ const Auth = () => {
                   <MicrosoftIcon />
                 </Button>
               </div> */}
-              <p className="text-center text-xs text-gray-500">
+              {/* <p className="text-center text-xs text-gray-500">
                 New here? <Link to="/pay/signup" className="text-blue-400 hover:text-blue-300">Open a bank account</Link>
-              </p>
+              </p> */}
             </CardContent>
           </Card>
         </div>

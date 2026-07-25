@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import OSPage from "./OSPage";
 import OSSectionHeader from "./OSSectionHeader";
-import OSCard, { Chip } from "./OSCard";
+import ShowcaseCard from "@/components/cards/ShowcaseCard";
 import { packages } from "./data";
 import { Boxes, Package } from "lucide-react";
 
@@ -30,19 +30,17 @@ const OSPackages = () => {
           <button key={r} onClick={() => setReg(r)} className={`rounded-full border px-3 py-1 text-xs ${reg === r ? "border-neutral-900 bg-neutral-900 text-white dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900" : "border-neutral-300 dark:border-neutral-700"}`}>{r}</button>
         ))}
       </div>
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((p) => (
-          <OSCard
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filtered.map((p, i) => (
+          <ShowcaseCard
             key={p.id}
+            index={i}
             title={p.name}
             description={p.description}
             icon={Package}
-            meta={
-              <>
-                <Chip>{p.registry}</Chip>
-                <Chip>v{p.version}</Chip>
-              </>
-            }
+            category={p.registry}
+            status={`v${p.version}`}
+            tags={[p.registry]}
           />
         ))}
       </div>

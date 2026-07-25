@@ -79,6 +79,7 @@ const Footer = () => {
         { name: "Privacy Policy", path: "/privacy" },
         { name: "Terms", path: "/terms" },
         { name: "Cookies", path: "/cookies" },
+        { name: "Support", path: "/support" },
       ]
     }
   ];
@@ -309,6 +310,7 @@ const Footer = () => {
             <Link to="/privacy" className="text-gray-500 text-xs hover:text-white transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="text-gray-500 text-xs hover:text-white transition-colors">Terms of Service</Link>
             <Link to="/cookies" className="text-gray-500 text-xs hover:text-white transition-colors">Cookies</Link>
+            <Link to="/support" className="text-gray-500 text-xs hover:text-white transition-colors">Support</Link>
           </div>
         </div>
       </div>
