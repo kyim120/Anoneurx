@@ -54,6 +54,7 @@ const Courses = React.lazy(() => import('./pages/courses/Courses'));
 const BlockchainSystems = React.lazy(() => import('./pages/marketing/BlockchainSystems'));
 const OperatingSystems = React.lazy(() => import('./pages/marketing/OperatingSystems'));
 const PrivacyPolicy = React.lazy(() => import('./pages/legal/PrivacyPolicy'));
+const Support = React.lazy(() => import('./pages/legal/Support'));
 const TermsOfService = React.lazy(() => import('./pages/legal/TermsOfService'));
 const Cookies = React.lazy(() => import('./pages/legal/Cookies'));
 const SubmitProject = React.lazy(() => import('./pages/projects/SubmitProject'));
@@ -502,6 +503,7 @@ function App() {
                 <Route path="blockchain-systems" element={<BlockchainSystems />} />
                 <Route path="operating-systems" element={<OperatingSystems />} />
                 <Route path="privacy" element={<PrivacyPolicy />} />
+                <Route path="support" element={<Support />} />
                 <Route path="terms" element={<TermsOfService />} />
                 <Route path="cookies" element={<Cookies />} />
                 <Route path="challenge/:challengeId" element={<ChallengeDetail />} />
