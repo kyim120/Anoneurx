@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import RouteSEO from "@/components/RouteSEO";
 import images from "@/constants/images";
 
 const PublicLayout = () => {
@@ -55,6 +56,7 @@ const PublicLayout = () => {
   const isProfilePage = location.pathname === '/ceo'
     || (location.pathname.startsWith('/people/') && location.pathname !== '/people')
     || (location.pathname.startsWith('/faculty/') && location.pathname.split('/').filter(Boolean).length >= 3)
+    || (location.pathname.startsWith('/intern/') && location.pathname.split('/').filter(Boolean).length >= 3)
     || location.pathname.startsWith('/read/');
   const hideNavAndFooter = isAuthPage || isPaymentPage || isProfilePage;
 
@@ -72,6 +74,7 @@ const PublicLayout = () => {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col min-h-screen">
+        <RouteSEO />
         {!hideNavAndFooter && <Navigation />}
         <main className="flex-1">
           <Outlet />

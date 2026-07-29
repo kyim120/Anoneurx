@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { GraduationCap, BookOpen, Clock, Mail, ExternalLink, Award, ChevronLeft, MapPin } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import SEO from "@/components/SEO";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { slugify } from "@/lib/utils";
 import { facultyDirectory, FacultyRecord } from "@/data/faculty";
 
@@ -22,31 +23,53 @@ const FacultyProfile: React.FC = () => {
     return <Navigate to="/faculty" replace />;
   }
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Person",
-    name: person.name,
-    jobTitle: `${person.position}, ${person.department}`,
-    worksFor: { "@type": "Organization", name: "Anoneurx University" },
-    description: person.bio,
-    image: person.photo,
-    email: person.email,
-    url: `https://anoneurx.com/faculty/${department}/${name}`,
-    alumniOf: person.education?.map((e) => ({ "@type": "EducationalOrganization", name: e.school })),
-    sameAs: [person.scholar, person.orcid].filter(Boolean),
-  };
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      name: person.name,
+      jobTitle: `${person.position}, ${person.department}`,
+      worksFor: { "@type": "Organization", name: "Anoneurx University", url: "https://anoneurx.com" },
+      affiliation: { "@type": "EducationalOrganization", name: "Anoneurx University" },
+      alternateName: `${person.name} — Anoneurx University`,
+      description: person.bio,
+      image: person.photo,
+      email: person.email,
+      url: `https://anoneurx.com/faculty/${department}/${name}`,
+      alumniOf: person.education?.map((e) => ({ "@type": "EducationalOrganization", name: e.school })),
+      sameAs: [person.scholar, person.orcid].filter(Boolean),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "University", item: "https://anoneurx.com/university" },
+        { "@type": "ListItem", position: 2, name: "Faculty", item: "https://anoneurx.com/faculty" },
+        { "@type": "ListItem", position: 3, name: person.name, item: `https://anoneurx.com/faculty/${department}/${name}` },
+      ],
+    },
+  ];
 
   return (
     <PageTransition>
       <SEO
-        title={`${person.position} ${person.name} — ${person.department}`}
-        description={`${person.name} — ${person.position} in ${person.department} at Anoneurx. ${person.bio.slice(0, 140)}`}
+        title={`${person.name} — Anoneurx University Faculty (${person.department})`}
+        description={`${person.name} — ${person.position} in ${person.department} at Anoneurx University. ${person.bio.slice(0, 140)}`}
         path={`/faculty/${department}/${name}`}
         image={person.photo}
         jsonLd={jsonLd}
       />
       <div className="min-h-screen pt-24 pb-20">
         <div className="container-responsive max-w-5xl text-white">
+          <Breadcrumb className="mb-4">
+            <BreadcrumbList>
+              <BreadcrumbItem><BreadcrumbLink href="/university">University</BreadcrumbLink></BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem><BreadcrumbLink href="/faculty">Faculty</BreadcrumbLink></BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem><BreadcrumbPage>{person.name}</BreadcrumbPage></BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
           <Link to="/faculty" className="inline-flex items-center gap-1 text-sm text-white/60 hover:text-white mb-6">
             <ChevronLeft className="w-4 h-4" /> All faculty
           </Link>

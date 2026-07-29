@@ -38,6 +38,7 @@ export interface InternProfile {
   bio: string;
   university?: string;
   email?: string;
+  github?: string;
   location?: string;
   history: InternshipHistoryItem[];
   openSource: {
@@ -59,8 +60,9 @@ export const internProfiles: InternProfile[] = [
     status: "Active",
     photo: inshaPhoto,
     bio: "Software Engineering student passionate about building modern web applications, creating responsive user interfaces, and continuously learning new technologies through personal and academic projects.",
-    university: "Lahore Girls College for Women (LGCW)",
+    university: "Lahore College For Women University Lahore",
     email: "inshaits@gmail.com",
+    github: "https://github.com/inshaits-hub",
     location: "Lahore, Pakistan",
     history: [
       {

@@ -9,6 +9,7 @@ interface SEOProps {
   image?: string;
   type?: "website" | "article";
   jsonLd?: object | object[];
+  noindex?: boolean;
 }
 
 /**
@@ -22,6 +23,7 @@ const SEO = ({
   image,
   type = "website",
   jsonLd,
+  noindex,
 }: SEOProps) => {
   const fullTitle = title ? `Anoneurx | ${title}` : "Anoneurx";
   const url = `${SITE}${path}`;
@@ -33,19 +35,26 @@ const SEO = ({
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
-      <link rel="canonical" href={url} />
 
-      <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={description} />
-      <meta property="og:url" content={url} />
-      <meta property="og:type" content={type} />
-      <meta property="og:site_name" content="Anoneurx" />
-      {ogImage && <meta property="og:image" content={ogImage} />}
+      {noindex ? (
+        <meta name="robots" content="noindex,nofollow" />
+      ) : (
+        <>
+          <link rel="canonical" href={url} />
 
-      <meta name="twitter:card" content={ogImage ? "summary_large_image" : "summary"} />
-      <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description} />
-      {ogImage && <meta name="twitter:image" content={ogImage} />}
+          <meta property="og:title" content={fullTitle} />
+          <meta property="og:description" content={description} />
+          <meta property="og:url" content={url} />
+          <meta property="og:type" content={type} />
+          <meta property="og:site_name" content="Anoneurx" />
+          {ogImage && <meta property="og:image" content={ogImage} />}
+
+          <meta name="twitter:card" content={ogImage ? "summary_large_image" : "summary"} />
+          <meta name="twitter:title" content={fullTitle} />
+          <meta name="twitter:description" content={description} />
+          {ogImage && <meta name="twitter:image" content={ogImage} />}
+        </>
+      )}
 
       {ldArray.map((ld, i) => (
         <script key={i} type="application/ld+json">{JSON.stringify(ld)}</script>

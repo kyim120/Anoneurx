@@ -10,6 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { apiClient } from "@/services/apiClient";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
+import SEO from "@/components/SEO";
 import logoSvg from "@/assets/logo.svg";
 import { LoginComponent } from "./LoginComponent";
 import { SignupComponent } from "./SignupComponent";
@@ -194,6 +195,7 @@ const Auth = () => {
 
   return (
     <PageTransition>
+      <SEO noindex />
       <div className="min-h-screen flex items-center justify-center px-4 py-16">
         <div className="w-full max-w-[440px]">
           <div className="glass backdrop-blur-2xl bg-white/[0.04] border border-white/10 rounded-2xl shadow-2xl px-7 py-9 sm:px-10">

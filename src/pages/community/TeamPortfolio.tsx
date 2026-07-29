@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import PageTransition from '@/components/PageTransition';
 import SEO from '@/components/SEO';
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { getSeedPortfolio } from '@/lib/teamStore';
 import type { TeamPortfolio as TeamPortfolioT } from '@/data/teamPortfolios';
 
@@ -21,19 +22,30 @@ const TeamPortfolio: React.FC = () => {
 
   if (!profile) return <Navigate to="/people" replace />;
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Person',
-    name: profile.name,
-    jobTitle: `${profile.title}, ${profile.department}`,
-    worksFor: { '@type': 'Organization', name: 'Anoneurx' },
-    description: (profile.about?.bio || profile.tagline).slice(0, 140),
-    image: profile.photo,
-    email: profile.email,
-    url: `https://anoneurx.com/people/${profile.slug}`,
-    sameAs: [profile.linkedin, profile.github, profile.twitter, profile.website].filter(Boolean),
-    alumniOf: profile.education?.map((e) => ({ '@type': 'EducationalOrganization', name: e.school })),
-  };
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: profile.name,
+      jobTitle: `${profile.title}, ${profile.department}`,
+      worksFor: { '@type': 'Organization', name: 'Anoneurx', url: 'https://anoneurx.com' },
+      alternateName: `${profile.name} — Anoneurx`,
+      description: (profile.about?.bio || profile.tagline).slice(0, 140),
+      image: profile.photo,
+      email: profile.email,
+      url: `https://anoneurx.com/people/${profile.slug}`,
+      sameAs: [profile.linkedin, profile.github, profile.twitter, profile.website].filter(Boolean),
+      alumniOf: profile.education?.map((e) => ({ '@type': 'EducationalOrganization', name: e.school })),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Team', item: 'https://anoneurx.com/people' },
+        { '@type': 'ListItem', position: 2, name: profile.name, item: `https://anoneurx.com/people/${profile.slug}` },
+      ],
+    },
+  ];
 
   const allSkills = [
     ...(profile.skills?.core || []),
@@ -58,7 +70,7 @@ const TeamPortfolio: React.FC = () => {
   return (
     <PageTransition>
       <SEO
-        title={`${profile.title} ${profile.name} — ${profile.department}`}
+        title={`${profile.name} — Anoneurx Team`}
         description={`${profile.name} — ${profile.title} in ${profile.department} at Anoneurx. ${(profile.about?.bio || profile.tagline).slice(0, 140)}`}
         path={`/people/${profile.slug}`}
         image={profile.photo}
@@ -66,6 +78,13 @@ const TeamPortfolio: React.FC = () => {
       />
       <div className="min-h-screen pt-24 pb-20 text-white">
         <div className="container-responsive max-w-6xl">
+          <Breadcrumb className="mb-4">
+            <BreadcrumbList>
+              <BreadcrumbItem><BreadcrumbLink href="/people">Team</BreadcrumbLink></BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem><BreadcrumbPage>{profile.name}</BreadcrumbPage></BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
           <Link to="/people" className="inline-flex items-center gap-1 text-sm text-white/60 hover:text-white mb-6">
             <ChevronLeft className="w-4 h-4" /> All people
           </Link>

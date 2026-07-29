@@ -96,7 +96,7 @@ const map: Record<string, Entry> = {
   },
   "/about": { title: "About Anoneurx", description: "Anoneurx is a global software company shipping operating systems, AI, cloud and open source infrastructure for developers." },
   "/contact": { title: "Contact Anoneurx", description: "Get in touch with Anoneurx for partnerships, support, press or general enquiries." },
-  "/people": { title: "Anoneurx People", description: "Meet the engineers, researchers and designers of Anoneurx across every department." },
+  "/people": { title: "Anoneurx Team — Engineers, Researchers & Designers", description: "Meet the engineers, researchers and designers of Anoneurx across every department." },
   "/careers": { title: "Careers at Anoneurx", description: "Join Anoneurx — engineering, research, design and operations roles across our global teams." },
   "/careers/join": { title: "Join Anoneurx", description: "Apply to open Anoneurx roles and become part of our global engineering team." },
   "/careers/hackathon": { title: "Anoneurx Hackathon", description: "Compete in the Anoneurx Hackathon — global challenges, prizes and recruitment fast-track." },
@@ -221,9 +221,9 @@ const map: Record<string, Entry> = {
   "/partnership-inquiry": { title: "Partnership Inquiry — Anoneurx", description: "Submit a partnership inquiry to Anoneurx." },
   "/collaboration": { title: "Collaborate with Anoneurx", description: "Research, product and enterprise collaboration with Anoneurx." },
   "/collaboration/form": { title: "Collaboration Form — Anoneurx", description: "Start a collaboration with Anoneurx." },
-  "/university": { title: "Anoneurx University", description: "Anoneurx University — degree programmes, certificates and short courses for the next generation of engineers." },
+  "/university": { title: "Anoneurx University | Courses, Faculty & Programs", description: "Anoneurx University — degree programmes, certificates and short courses for the next generation of engineers." },
   "/courses": { title: "Courses — Anoneurx University", description: "Every course from Anoneurx University — engineering, AI, systems, design and more." },
-  "/professors": { title: "Professors — Anoneurx University", description: "Meet the faculty behind Anoneurx University." },
+  "/faculty": { title: "Anoneurx University Faculty — Professors & Researchers", description: "Meet the faculty behind Anoneurx University — professors, researchers and educators across every department." },
   "/notes": { title: "Notes — Anoneurx", description: "Study notes, cheatsheets and reference material curated by Anoneurx." },
   "/arcadeum": { title: "Anoneurx Arcadeum", description: "Anoneurx Arcadeum — indie games, engines and creator tools." },
   "/privacy": { title: "Privacy Policy — Anoneurx", description: "How Anoneurx protects your data — the privacy policy in full." },
@@ -233,7 +233,7 @@ const map: Record<string, Entry> = {
   "/login": { title: "Log in — Anoneurx", description: "Log in to Anoneurx." },
   "/signup": { title: "Create your Anoneurx account", description: "Create a free Anoneurx account." },
   "/reportbug": { title: "Report a Bug — Anoneurx", description: "Report a bug in any Anoneurx product." },
-  "/people": { title: "Anoneurx People", description: "Meet the engineers, researchers and designers of Anoneurx across every department." },
+  "/people": { title: "Anoneurx Team — Engineers, Researchers & Designers", description: "Meet the engineers, researchers and designers of Anoneurx across every department." },
   "/ceo": {
     title: "Muhammad Qasim — Founder & CEO of Anoneurx",
     description: "Meet Muhammad Qasim, founder and CEO of Anoneurx — vision, leadership message, milestones and focus areas.",
@@ -242,7 +242,7 @@ const map: Record<string, Entry> = {
       BREADCRUMB([{ name: "Anoneurx", item: "/" }, { name: "CEO", item: "/ceo" }]),
     ],
   },
-  "/intern": { title: "Anoneurx Interns", description: "Every Anoneurx intern across AI, Robotics, Cyber Security, Data Science and more." },
+  "/intern": { title: "Anoneurx Interns — Engineering, Research & Design", description: "Every Anoneurx intern across AI, Robotics, Cyber Security, Data Science and more." },
   "/opensource/repos": { title: "Repositories — Anoneurx Open Source", description: "Every public Anoneurx repository — stars, languages, activity and maintainers." },
   "/opensource/events": { title: "Events — Anoneurx Open Source", description: "Open source events, sprints and release parties from the Anoneurx community." },
   "/opensource/search": { title: "Search Anoneurx Open Source", description: "Search projects, repositories, libraries, packages, templates and events across Anoneurx open source." },
@@ -281,23 +281,39 @@ const patterns: { pattern: string; build: (params: Record<string, string | undef
   {
     pattern: "/people/:name",
     build: (p) => ({
-      title: `${humanize(p.name)} — Anoneurx`,
+      title: `${humanize(p.name)} — Anoneurx Team`,
       description: `${humanize(p.name)} at Anoneurx — role, department and focus areas.`,
       jsonLd: [
-        PERSON(humanize(p.name), `/people/${p.name}`, "Team Member"),
-        BREADCRUMB([{ name: "People", item: "/people" }, { name: humanize(p.name), item: `/people/${p.name}` }]),
+        {
+          "@context": "https://schema.org",
+          "@type": "Person",
+          name: humanize(p.name),
+          url: `${SITE}/people/${p.name}`,
+          jobTitle: "Team Member",
+          worksFor: { "@type": "Organization", name: "Anoneurx", url: SITE },
+          alternateName: `${humanize(p.name)} — Anoneurx`,
+        },
+        BREADCRUMB([{ name: "Team", item: "/people" }, { name: humanize(p.name), item: `/people/${p.name}` }]),
       ],
     }),
   },
   {
     pattern: "/people/:dept/:name",
     build: (p) => ({
-      title: `${humanize(p.name)} — Anoneurx ${humanize(p.dept)}`,
+      title: `${humanize(p.name)} — Anoneurx Team (${humanize(p.dept)})`,
       description: `${humanize(p.name)} works in the ${humanize(p.dept)} department at Anoneurx.`,
       jsonLd: [
-        PERSON(humanize(p.name), `/people/${p.dept}/${p.name}`, "Team Member", humanize(p.dept)),
+        {
+          "@context": "https://schema.org",
+          "@type": "Person",
+          name: humanize(p.name),
+          url: `${SITE}/people/${p.dept}/${p.name}`,
+          jobTitle: `Team Member, ${humanize(p.dept)}`,
+          worksFor: { "@type": "Organization", name: "Anoneurx", url: SITE },
+          alternateName: `${humanize(p.name)} — Anoneurx`,
+        },
         BREADCRUMB([
-          { name: "People", item: "/people" },
+          { name: "Team", item: "/people" },
           { name: humanize(p.dept), item: `/people/${p.dept}` },
           { name: humanize(p.name), item: `/people/${p.dept}/${p.name}` },
         ]),
@@ -307,13 +323,23 @@ const patterns: { pattern: string; build: (params: Record<string, string | undef
   {
     pattern: "/faculty/:department/:name",
     build: (p) => ({
-      title: `${humanize(p.name)} — Anoneurx University ${humanize(p.department)} Faculty`,
+      title: `${humanize(p.name)} — Anoneurx University Faculty (${humanize(p.department)})`,
       description: `Faculty profile of ${humanize(p.name)} — education, position, research areas, publications and office hours at Anoneurx University.`,
       jsonLd: [
-        PERSON(humanize(p.name), `/faculty/${p.department}/${p.name}`, "Professor", humanize(p.department)),
+        {
+          "@context": "https://schema.org",
+          "@type": "Person",
+          name: humanize(p.name),
+          url: `${SITE}/faculty/${p.department}/${p.name}`,
+          jobTitle: `Professor, ${humanize(p.department)}`,
+          worksFor: { "@type": "Organization", name: "Anoneurx University", url: SITE },
+          affiliation: { "@type": "EducationalOrganization", name: "Anoneurx University" },
+          alternateName: `${humanize(p.name)} — Anoneurx University`,
+          memberOf: { "@type": "Organization", name: `Anoneurx ${humanize(p.department)}` },
+        },
         BREADCRUMB([
           { name: "University", item: "/university" },
-          { name: "Professors", item: "/professors" },
+          { name: "Faculty", item: "/faculty" },
           { name: humanize(p.name), item: `/faculty/${p.department}/${p.name}` },
         ]),
       ],
@@ -325,7 +351,15 @@ const patterns: { pattern: string; build: (params: Record<string, string | undef
       title: `${humanize(p.name)} — Anoneurx ${humanize(p.department)} Intern`,
       description: `Intern profile of ${humanize(p.name)} — bio, internship history, open source contributions, certificates and badges.`,
       jsonLd: [
-        PERSON(humanize(p.name), `/intern/${p.department}/${p.name}`, "Intern", humanize(p.department)),
+        {
+          "@context": "https://schema.org",
+          "@type": "Person",
+          name: humanize(p.name),
+          url: `${SITE}/intern/${p.department}/${p.name}`,
+          jobTitle: `Intern, ${humanize(p.department)}`,
+          worksFor: { "@type": "Organization", name: "Anoneurx", url: SITE },
+          alternateName: `${humanize(p.name)} — Anoneurx`,
+        },
         BREADCRUMB([
           { name: "Interns", item: "/intern" },
           { name: humanize(p.department), item: "/intern" },
@@ -370,6 +404,32 @@ const patterns: { pattern: string; build: (params: Record<string, string | undef
   { pattern: "/docs/project/:projectId", build: (p) => ({ title: `Docs — ${p.projectId}`, description: `Documentation for the ${p.projectId} project.` }) },
   { pattern: "/challenge/:challengeId", build: (p) => ({ title: `Challenge — ${p.challengeId}`, description: `Details for the ${p.challengeId} community challenge.` }) },
   { pattern: "/reportbug/:product", build: (p) => ({ title: `Report a Bug — ${p.product}`, description: `Report a bug in ${p.product}.` }) },
+  {
+    pattern: "/cloud/connect",
+    build: () => ({
+      title: "Black Wall Connect — Cloud Console",
+      description: "Black Wall Cloud Connect console — manage servers, storage, network, firewall, users and SSH keys.",
+      jsonLd: [
+        SOFTWARE("Black Wall Cloud Connect", "/cloud/connect", "Cloud server management console for Black Wall OS."),
+        BREADCRUMB([{ name: "Cloud", item: "/cloud" }, { name: "Connect", item: "/cloud/connect" }]),
+      ],
+    }),
+  },
+  {
+    pattern: "/cloud/connect/:section",
+    build: (p) => ({
+      title: `Black Wall Connect — ${humanize(p.section)}`,
+      description: `Manage ${humanize(p.section)} in Black Wall Cloud Connect console.`,
+      jsonLd: [
+        SOFTWARE("Black Wall Cloud Connect", `/cloud/connect/${p.section}`, "Cloud server management console."),
+        BREADCRUMB([
+          { name: "Cloud", item: "/cloud" },
+          { name: "Connect", item: "/cloud/connect" },
+          { name: humanize(p.section), item: `/cloud/connect/${p.section}` },
+        ]),
+      ],
+    }),
+  },
 ];
 
 const RouteSEO = () => {

@@ -4,9 +4,10 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Award, GitPullRequest, GraduationCap, Users, Sparkles, MapPin, Mail } from "lucide-react";
+import { ChevronLeft, Award, GitPullRequest, GraduationCap, Users, Sparkles, MapPin, Mail, Github } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
 import SEO from "@/components/SEO";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { slugify } from "@/lib/utils";
 import { internProfiles } from "@/data/internProfiles";
 
@@ -20,23 +21,34 @@ const InternProfile: React.FC = () => {
 
   if (!person) return <Navigate to="/intern" replace />;
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Person",
-    name: person.name,
-    jobTitle: `Intern, ${person.department}`,
-    worksFor: { "@type": "Organization", name: "Anoneurx" },
-    description: person.bio,
-    image: person.photo,
-    email: person.email,
-    url: `https://anoneurx.com/intern/${department}/${name}`,
-    alumniOf: person.university ? { "@type": "EducationalOrganization", name: person.university } : undefined,
-  };
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      name: person.name,
+      jobTitle: `Intern, ${person.department}`,
+      worksFor: { "@type": "Organization", name: "Anoneurx", url: "https://anoneurx.com" },
+      alternateName: `${person.name} — Anoneurx`,
+      description: person.bio,
+      image: person.photo,
+      email: person.email,
+      url: `https://anoneurx.com/intern/${department}/${name}`,
+      alumniOf: person.university ? { "@type": "EducationalOrganization", name: person.university } : undefined,
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Interns", item: "https://anoneurx.com/intern" },
+        { "@type": "ListItem", position: 2, name: person.name, item: `https://anoneurx.com/intern/${department}/${name}` },
+      ],
+    },
+  ];
 
   return (
     <PageTransition>
       <SEO
-        title={`Intern ${person.name} — ${person.department}`}
+        title={`${person.name} — Anoneurx ${person.department} Intern`}
         description={`Anoneurx ${person.department} intern ${person.name}. ${person.bio.slice(0, 140)}`}
         path={`/intern/${department}/${name}`}
         image={person.photo}
@@ -44,6 +56,13 @@ const InternProfile: React.FC = () => {
       />
       <div className="min-h-screen pt-24 pb-20">
         <div className="container-responsive max-w-5xl text-white">
+          <Breadcrumb className="mb-4">
+            <BreadcrumbList>
+              <BreadcrumbItem><BreadcrumbLink href="/intern">Interns</BreadcrumbLink></BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem><BreadcrumbPage>{person.name}</BreadcrumbPage></BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
           <Link to="/intern" className="inline-flex items-center gap-1 text-sm text-white/60 hover:text-white mb-6">
             <ChevronLeft className="w-4 h-4" /> All interns
           </Link>
@@ -65,13 +84,22 @@ const InternProfile: React.FC = () => {
                     {person.university && <span className="inline-flex items-center gap-1.5"><GraduationCap className="w-4 h-4" />{person.university}</span>}
                     {person.location && <span className="inline-flex items-center gap-1.5"><MapPin className="w-4 h-4" />{person.location}</span>}
                   </div>
-                  {person.email && (
-                    <a href={`mailto:${person.email}`}>
-                      <Button size="sm" variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10">
-                        <Mail className="w-4 h-4 mr-1.5" /> Contact
-                      </Button>
-                    </a>
-                  )}
+                  <div className="flex flex-wrap gap-3 pt-1">
+                    {person.email && (
+                      <a href={`mailto:${person.email}`}>
+                        <Button size="sm" variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10">
+                          <Mail className="w-4 h-4 mr-1.5" /> Mail
+                        </Button>
+                      </a>
+                    )}
+                    {person.github && (
+                      <a href={person.github} target="_blank" rel="noopener noreferrer">
+                        <Button size="sm" variant="outline" className="border-white/10 bg-white/5 text-white hover:bg-white/10">
+                          <Github className="w-4 h-4 mr-1.5" /> GitHub
+                        </Button>
+                      </a>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
