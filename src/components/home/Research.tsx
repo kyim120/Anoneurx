@@ -6,7 +6,7 @@ import roboticsHeroImg from "@/assets/marketing/robotics-hero.jpg";
 
 export const Research: React.FC = () => {
   return (
-    <section className="relative py-32 px-4 sm:px-6 lg:px-8 text-white overflow-hidden">
+    <section className="relative py-32 px-4 sm:px-6 lg:px-8 text-white border-t border-white/5 overflow-hidden">
       {/* Glow background accent */}
       <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-purple-900/10 rounded-full blur-[180px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-cyan-900/10 rounded-full blur-[180px] pointer-events-none" />

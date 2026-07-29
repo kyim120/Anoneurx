@@ -22,10 +22,7 @@ const University = () => {
   ];
 
   const faculty = [
-    { name: 'Dr. Sarah Chen', role: 'Head of AI Research', specialization: 'Deep Learning & NLP' },
-    { name: 'Prof. James Mitchell', role: 'Robotics Department Lead', specialization: 'Autonomous Systems' },
-    { name: 'Dr. Amara Okafor', role: 'Space Systems Director', specialization: 'Orbital Mechanics' },
-    { name: 'Prof. Liam Torres', role: 'Blockchain Faculty', specialization: 'Distributed Systems' },
+    { name: 'Dr. Zoha Tariq', role: 'Proffesor', specialization: 'Mathematical Physics' },
   ];
 
   const testimonials = [

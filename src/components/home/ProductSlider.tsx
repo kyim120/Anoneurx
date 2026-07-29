@@ -82,7 +82,7 @@ export const ProductSlider: React.FC = () => {
   const currentProduct = products[currentIndex];
 
   return (
-    <section className="relative py-12 px-4 sm:px-6 lg:px-8 bg-transparent text-white overflow-hidden select-none">
+    <section className="relative py-12 px-4 sm:px-6 lg:px-8 bg-transparent text-white border-t border-white/5 overflow-hidden select-none">
       {/* Background radial glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-gradient-to-r from-cyan-900/10 via-indigo-900/10 to-purple-900/10 rounded-full blur-[150px] pointer-events-none" />
 

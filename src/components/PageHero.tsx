@@ -12,7 +12,7 @@ interface PageHeroProps {
   align?: "left" | "center";
 }
 
-const DARK_PREFIXES = ["/blackwall", "/opensource", "/cloud", "/nexora", "/research", "/pay", "/read-paper", "/view-in-journal"];
+const DARK_PREFIXES = ["/blackwall", "/opensource", "/cloud", "/nexora", "/research", "/pay", "/read", "/view-in-journal"];
 const isDarkPath = (p: string) => p === "/" || DARK_PREFIXES.some((x) => p.startsWith(x));
 
 /**

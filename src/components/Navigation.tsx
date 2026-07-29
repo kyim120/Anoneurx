@@ -37,6 +37,8 @@ const Navigation = () => {
   const isBanking = location.pathname.startsWith('/pay');
   const isOpensource = location.pathname.startsWith('/opensource');
 
+  const isUniversity = /^\/(university|professors|courses|intern|faculty)/.test(location.pathname);
+
   const navItems = isNexora ? [
     { name: "Home", path: "/nexora" },
     { name: "About", path: "/nexora/about" },
@@ -44,11 +46,13 @@ const Navigation = () => {
   ] : isBlackwall ? [
     { name: "Home", path: "/blackwall" },
     { name: "About", path: "/blackwall/about" },
-    { name: "Contact", path: "/contact" },
+    { name: "Black Wall Server", path: "/blackwall/server" },
+    { name: "Support", path: "/blackwall/support" },
   ] : isCloud ? [
     { name: "Home", path: "/cloud" },
-    { name: "About", path: "/about" }, // Or cloud specific about if needed
+    { name: "About", path: "/about" },
     { name: "Contact", path: "/contact" },
+    { name: "Connect To Servers", path: "/auth?mode=connect" },
   ] : isApps ? [
     { name: "Home", path: "/apps" },
     { name: "Apps", path: "/apps/browse" },
@@ -61,10 +65,19 @@ const Navigation = () => {
     { name: "Home", path: "/opensource" },
     { name: "About", path: "/opensource/about" },
     { name: "Contact", path: "/contact" },
+    { name: "Projects", path: "/opensource/projects" },
+    { name: "Events", path: "/opensource/events" },
+    { name: "Sponsors", path: "/opensource/sponsors" },
+  ] : isUniversity ? [
+    { name: "University", path: "/university" },
+    { name: "Professors", path: "/faculty" },
+    { name: "Courses", path: "/courses" },
+    { name: "Interns", path: "/intern" },
   ] : [
-    { name: "Home", path: "/" },
-    { name: "About", path: "/about" },
-    { name: "Contact", path: "/contact" },
+    { name: "Black Wall", path: "/blackwall" },
+    { name: "Anoneurx Pay", path: "/pay" },
+    { name: "Cloud", path: "/cloud" },
+    { name: "University", path: "/university" },
   ];
 
   const pageOrder = navItems.map(item => item.path);

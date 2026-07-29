@@ -2,7 +2,6 @@
 {
   "papers": [
     {
-      "paperId": "vwxyz",
       "id": 1,
       "title": "Advanced Neural Networks for Autonomous Vehicle Navigation",
       "authors": ["Dr. Sarah Chen", "Prof. Michael Rodriguez", "Dr. Emily Watson"],
@@ -35,7 +34,6 @@
       }
     },
     {
-      "paperId": "abcde",
       "id": 2,
       "title": "Quantum-Enhanced Machine Learning for Drug Discovery",
       "authors": ["Dr. David Kim", "Prof. Lisa Zhang", "Dr. Robert Johnson"],
@@ -68,7 +66,6 @@
       }
     },
     {
-      "paperId": "qmzkl",
       "id": 3,
       "title": "Blockchain-Based Secure IoT Data Management",
       "authors": ["Dr. Alex Thompson", "Prof. Maria Santos", "Dr. John Wilson"],

@@ -1,11 +1,26 @@
 import React, { Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import PageLoader from './components/PageLoader';
 import { UserProvider } from './contexts/UserContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { ConnectSessionProvider } from './pages/cloud/connect/ConnectSession';
 import { NavigationProvider } from './contexts/NavigationContext';
 import { AuthProvider } from './contexts/AuthContext';
 import RequireAuth from './components/RequireAuth';
+
+/** Legacy paper URLs (/read-paper/:id, /research/read/:id) → canonical /read/:id */
+const LegacyPaperRedirect = () => {
+  const { id } = useParams();
+  return <Navigate to={`/read/${id}`} replace />;
+};
+
+/** Legacy /team/... profile URLs → canonical /people/... */
+const LegacyTeamMemberRedirect = () => {
+  const { dept, name } = useParams();
+  if (dept && name) return <Navigate to={`/people/${dept}/${name}`} replace />;
+  if (name) return <Navigate to={`/people/${name}`} replace />;
+  return <Navigate to="/people" replace />;
+};
 
 // Layouts (keep static - they wrap everything)
 import PublicLayout from './layouts/PublicLayout';
@@ -26,7 +41,6 @@ const BlogsAll = React.lazy(() => import('./pages/blogs/BlogsAll'));
 const ReadBlog = React.lazy(() => import('./pages/blogs/ReadBlog'));
 const Research = React.lazy(() => import('./pages/research/Research'));
 const ReadPaper = React.lazy(() => import('./pages/research/ReadPaper'));
-const SharePaper = React.lazy(() => import('./pages/research/SharePaper'));
 const ViewInJournal = React.lazy(() => import('./pages/research/ViewInJournal'));
 const Contact = React.lazy(() => import('./pages/marketing/Contact'));
 const Team = React.lazy(() => import('./pages/community/Team'));
@@ -54,12 +68,16 @@ const Courses = React.lazy(() => import('./pages/courses/Courses'));
 const BlockchainSystems = React.lazy(() => import('./pages/marketing/BlockchainSystems'));
 const OperatingSystems = React.lazy(() => import('./pages/marketing/OperatingSystems'));
 const PrivacyPolicy = React.lazy(() => import('./pages/legal/PrivacyPolicy'));
-const Support = React.lazy(() => import('./pages/legal/Support'));
 const TermsOfService = React.lazy(() => import('./pages/legal/TermsOfService'));
 const Cookies = React.lazy(() => import('./pages/legal/Cookies'));
+const Support = React.lazy(() => import('./pages/legal/Support'));
 const SubmitProject = React.lazy(() => import('./pages/projects/SubmitProject'));
 const SubmittedProjects = React.lazy(() => import('./pages/projects/SubmittedProjects'));
 const Professors = React.lazy(() => import('./pages/courses/Professors'));
+const FacultyProfile = React.lazy(() => import('./pages/faculty/FacultyProfile'));
+const InternList = React.lazy(() => import('./pages/intern/InternList'));
+const InternProfile = React.lazy(() => import('./pages/intern/InternProfile'));
+const CEOProfile = React.lazy(() => import('./pages/marketing/CEO'));
 
 // Documentation subpages
 const DocsGettingStarted = React.lazy(() => import('./pages/docs/GettingStarted'));
@@ -118,6 +136,8 @@ const BlackwallDocs = React.lazy(() => import('./pages/blackwall/BlackwallDocs')
 const BlackwallArchitecture = React.lazy(() => import('./pages/blackwall/BlackwallArchitecture'));
 const BlackwallSecurity = React.lazy(() => import('./pages/blackwall/BlackwallSecurity'));
 const BlackwallPerformance = React.lazy(() => import('./pages/blackwall/BlackwallPerformance'));
+const BlackwallSupport = React.lazy(() => import('./pages/blackwall/BlackwallSupport'));
+const BlackwallInstall = React.lazy(() => import('./pages/blackwall/BlackwallInstall'));
 const Atlas = React.lazy(() => import('./pages/atlas/Atlas'));
 const AtlasDocs = React.lazy(() => import('./pages/docs/AtlasDocs'));
 
@@ -197,6 +217,22 @@ const ObjectStorage = React.lazy(() => import('./pages/cloud/storage/ObjectStora
 const BlockStorage = React.lazy(() => import('./pages/cloud/storage/BlockStorage'));
 const BackupVault = React.lazy(() => import('./pages/cloud/storage/BackupVault'));
 const ArchiveStorage = React.lazy(() => import('./pages/cloud/storage/ArchiveStorage'));
+
+// Cloud Connect (Black Wall console)
+const ConnectLayout = React.lazy(() => import('./pages/cloud/connect/ConnectLayout'));
+const ConnectAuth = React.lazy(() => import('./pages/auth/ConnectAuth'));
+const ConnectHome = React.lazy(() => import('./pages/cloud/connect/ConnectHome'));
+const ConnectDashboard = React.lazy(() => import('./pages/cloud/connect/ConnectDashboard'));
+const ConnectNetwork = React.lazy(() => import('./pages/cloud/connect/ConnectNetwork'));
+const ConnectStorage = React.lazy(() => import('./pages/cloud/connect/ConnectStorage'));
+const ConnectUsers = React.lazy(() => import('./pages/cloud/connect/ConnectUsers'));
+const ConnectFirewall = React.lazy(() => import('./pages/cloud/connect/ConnectFirewall'));
+const ConnectTerminal = React.lazy(() => import('./pages/cloud/connect/ConnectTerminal'));
+const ConnectSettings = React.lazy(() => import('./pages/cloud/connect/ConnectSettings'));
+const ConnectDiscover = React.lazy(() => import('./pages/cloud/connect/ConnectDiscover'));
+const ConnectSSHKeys = React.lazy(() => import('./pages/cloud/connect/ConnectSSHKeys'));
+const ConnectWebhooks = React.lazy(() => import('./pages/cloud/connect/ConnectWebhooks'));
+const RequireConnectAuth = React.lazy(() => import('./pages/cloud/connect/RequireConnectAuth'));
 
 // Career Pages
 const CareersHackathon = React.lazy(() => import('./pages/careers/Hackathon'));
@@ -296,6 +332,7 @@ function App() {
         <NavigationProvider>
           <UserProvider>
             <NotificationProvider>
+            <ConnectSessionProvider>
             <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Public Routes */}
@@ -314,26 +351,35 @@ function App() {
                   <Route path="vscode-extensions" element={<OSVSCodeExtensions />} />
                   <Route path="showcase" element={<OSShowcase />} />
                   <Route path="sponsors" element={<Sponsors />} />
+                  <Route path="sponcers" element={<Navigate to="/opensource/sponsors" replace />} />
+                  <Route path="community" element={<Community />} />
+                  <Route path="events" element={<CommunityEvents />} />
+                  <Route path="events/upcoming" element={<UpcomingEvents />} />
+                  <Route path="events/:eventId" element={<EventDetails />} />
+                  <Route path="events/:eventId/register" element={<EventRegister />} />
+                  <Route path="events/past" element={<PastEvents />} />
+                  <Route path="events/past/:eventId" element={<PastEventDetails />} />
+                  <Route path="events/host" element={<HostEvent />} />
                   <Route path="contributors" element={<ContributorsPage />} />
+                  <Route path="contributers" element={<Navigate to="/opensource/contributors" replace />} />
                 </Route>
                 <Route path="about" element={<About />} />
-                <Route path="sponsors" element={<Sponsors />} />
-                <Route path="contributors" element={<Navigate to="/contributions/contributors" replace />} />
+                <Route path="sponsors" element={<Navigate to="/opensource/sponsors" replace />} />
+                <Route path="sponcers" element={<Navigate to="/opensource/sponsors" replace />} />
+                <Route path="events" element={<Navigate to="/opensource/events" replace />} />
+                <Route path="events/*" element={<Navigate to="/opensource/events" replace />} />
+                <Route path="contributors" element={<Navigate to="/opensource/contributors" replace />} />
+                <Route path="contributers" element={<Navigate to="/opensource/contributors" replace />} />
                 <Route path="portfolio" element={<Navigate to="/" replace />} />
-                <Route path="community" element={<Community />} />
-                <Route path="community/events" element={<CommunityEvents />} />
-                <Route path="community/events/upcoming" element={<UpcomingEvents />} />
-                <Route path="community/events/:eventId" element={<EventDetails />} />
-                <Route path="community/events/:eventId/register" element={<EventRegister />} />
-                <Route path="community/events/past" element={<PastEvents />} />
-                <Route path="community/events/past/:eventId" element={<PastEventDetails />} />
-                <Route path="community/events/host" element={<HostEvent />} />
+                <Route path="community" element={<Navigate to="/opensource/community" replace />} />
+                <Route path="community/events" element={<Navigate to="/opensource/events" replace />} />
+                <Route path="community/events/*" element={<Navigate to="/opensource/events" replace />} />
                 <Route path="community/leaderboard" element={<CommunityLeaderboard />} />
                 <Route path="community/mentorship" element={<MentorshipApply />} />
                 <Route path="community/forums" element={<CommunityForums />} />
                 <Route path="community/forums/:categoryId" element={<DiscussionCategory />} />
                 <Route path="docs/project/:projectId" element={<ProjectDocs />} />
-                <Route path="contributions/contributors" element={<ContributorsPage />} />
+                <Route path="contributions/contributors" element={<Navigate to="/opensource/contributors" replace />} />
                 <Route path="contributions/rewards" element={<RewardsPage />} />
                 <Route path="contributions/how-to-contribute" element={<HowToContribute />} />
                 <Route path="contributions/review-progress" element={<ReviewProgress />} />
@@ -345,7 +391,7 @@ function App() {
                 <Route path="collaboration" element={<Collaboration />} />
                 <Route path="collaboration/form" element={<Collaboration />} />
                 <Route path="collaboration/form/:type" element={<RequireAuth><CollaborationForm /></RequireAuth>} />
-                <Route path="dev-team" element={<Navigate to="/team" replace />} />
+                <Route path="dev-team" element={<Navigate to="/people" replace />} />
                 <Route path="careers" element={<CareerHub />} />
                 <Route path="careers/hackathon" element={<CareersHackathon />} />
                 <Route path="careers/hackathon/verify" element={<CareersHackathonVerify />} />
@@ -360,15 +406,31 @@ function App() {
                 <Route path="blog/:id" element={<ReadBlog />} />
                 <Route path="research" element={<Research />} />
                 <Route path="read/:id" element={<ReadPaper />} />
-                <Route path="read-paper/:id" element={<ReadPaper />} />
-                <Route path="share/:code" element={<SharePaper />} />
+                <Route path="read-paper/:id" element={<LegacyPaperRedirect />} />
+                <Route path="research/read/:id" element={<LegacyPaperRedirect />} />
+                <Route path="research/read-paper/:id" element={<LegacyPaperRedirect />} />
+                <Route path="share/paper/:id" element={<ReadPaper />} />
+                <Route path="share/read/:id" element={<ReadPaper />} />
+                <Route path="share/:id" element={<ReadPaper />} />
                 <Route path="view-in-journal" element={<ViewInJournal />} />
                 <Route path="contact" element={<Contact />} />
-                <Route path="team" element={<Team />} />
-                <Route path="team/:name" element={<TeamPortfolio />} />
-                <Route path="team/:dept/:name" element={<TeamPortfolio />} />
+                {/* Team → People rename (keep team routes as backwards-compatible aliases) */}
+                <Route path="people" element={<Team />} />
+                <Route path="people/muhammadqasim" element={<Navigate to="/ceo" replace />} />
+                <Route path="people/:dept/muhammadqasim" element={<Navigate to="/ceo" replace />} />
+                <Route path="people/:name" element={<TeamPortfolio />} />
+                <Route path="people/:dept/:name" element={<TeamPortfolio />} />
+                <Route path="team" element={<Navigate to="/people" replace />} />
+                <Route path="team/:dept/:name" element={<LegacyTeamMemberRedirect />} />
+                <Route path="team/:name" element={<LegacyTeamMemberRedirect />} />
+                <Route path="ceo" element={<CEOProfile />} />
+                {/* Faculty */}
+                <Route path="faculty/:department/:name" element={<FacultyProfile />} />
+                {/* Interns (public) */}
+                <Route path="intern" element={<InternList />} />
+                <Route path="intern/:department/:name" element={<InternProfile />} />
                 <Route path="blogs" element={<OurBlogs />} />
-                <Route path="our-dev-team" element={<Navigate to="/team" replace />} />
+                <Route path="our-dev-team" element={<Navigate to="/people" replace />} />
                 <Route path="internships" element={<Internships />} />
                 <Route path="careers/internships" element={<Internships />} />
                 <Route path="internships/apply" element={<RequireAuth><InternshipApply /></RequireAuth>} />
@@ -392,8 +454,8 @@ function App() {
                   <Route path="download" element={<BankingDownload />} />
                   <Route path="dashboard" element={<RequireAuth><BankingDashboard /></RequireAuth>} />
                   <Route path="business" element={<RequireAuth><BankingBusinessDashboard /></RequireAuth>} />
-                  <Route path="signup" element={<BankingSignup />} />
-                  <Route path="open-account" element={<BankingSignup />} />
+                  <Route path="signup" element={<Navigate to="/auth?mode=signup&redirect=%2Fpay%2Fopen-account" replace />} />
+                  <Route path="open-account" element={<RequireAuth><BankingSignup /></RequireAuth>} />
                   <Route path="faq" element={<BankingFAQ />} />
                 </Route>
 
@@ -436,8 +498,11 @@ function App() {
                 <Route path="blackwall/security" element={<BlackwallSecurity />} />
                 <Route path="blackwall/performance" element={<BlackwallPerformance />} />
                 <Route path="blackwall/server" element={<BlackwallServer />} />
+                <Route path="blackwall/support" element={<BlackwallSupport />} />
+                <Route path="blackwall/install" element={<BlackwallInstall />} />
                 <Route path="blackwall/login" element={<Auth />} />
                 <Route path="docs/blackwall" element={<BlackwallDocs />} />
+                
 
                 {/* ATLAS language */}
                 <Route path="atlas" element={<Atlas />} />
@@ -497,14 +562,15 @@ function App() {
                 <Route path="courses" element={<Courses />} />
                 <Route path="courses/:courseId" element={<CourseDetail />} />
                 <Route path="courses/:courseId/enroll" element={<EnrollForm />} />
-                <Route path="professors" element={<Professors />} />
+                <Route path="faculty" element={<Professors />} />
+                <Route path="professors" element={<Navigate to="/faculty" replace />} />
                 <Route path="university" element={<University />} />
                 <Route path="courses" element={<Courses />} />
                 <Route path="blockchain-systems" element={<BlockchainSystems />} />
                 <Route path="operating-systems" element={<OperatingSystems />} />
                 <Route path="privacy" element={<PrivacyPolicy />} />
-                <Route path="support" element={<Support />} />
                 <Route path="terms" element={<TermsOfService />} />
+                <Route path="support" element={<Support />} />
                 <Route path="cookies" element={<Cookies />} />
                 <Route path="challenge/:challengeId" element={<ChallengeDetail />} />
               </Route>
@@ -592,9 +658,26 @@ function App() {
                 <Route path="submitted-projects" element={<DashboardSubmittedProjects />} />
               </Route>
 
+              {/* Black Wall Cloud Connect — standalone console, no site nav/footer */}
+              <Route path="/cloud/connect/auth" element={<Navigate to="/auth?mode=connect" replace />} />
+              <Route path="/cloud/connect" element={<RequireConnectAuth><ConnectLayout /></RequireConnectAuth>}>
+                <Route index element={<ConnectHome />} />
+                <Route path="dashboard" element={<ConnectDashboard />} />
+                <Route path="discover" element={<ConnectDiscover />} />
+                <Route path="network" element={<ConnectNetwork />} />
+                <Route path="storage" element={<ConnectStorage />} />
+                <Route path="users" element={<ConnectUsers />} />
+                <Route path="firewall" element={<ConnectFirewall />} />
+                <Route path="terminal" element={<ConnectTerminal />} />
+                <Route path="ssh-keys" element={<ConnectSSHKeys />} />
+                <Route path="webhooks" element={<ConnectWebhooks />} />
+                <Route path="settings" element={<ConnectSettings />} />
+              </Route>
+
               <Route path="*" element={<NotFound />} />
             </Routes>
             </Suspense>
+            </ConnectSessionProvider>
             </NotificationProvider>
           </UserProvider>
         </NavigationProvider>

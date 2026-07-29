@@ -153,6 +153,7 @@ const Footer = () => {
         { name: "Privacy Policy", path: "/privacy" },
         { name: "Terms", path: "/terms" },
         { name: "Cookies", path: "/cookies" },
+        { name: "Support", path: "/support" },
       ]
     }
   ];
@@ -224,13 +225,11 @@ const Footer = () => {
         { name: "Career Hub", path: "/careers" },
         { name: "Research", path: "/research" },
         { name: "Collaboration", path: "/collaboration" },
-        { name: "Events", path: "/community/events" },
       ]
     },
     {
       title: "Technologies",
       links: [
-        { name: "AI Systems", path: "/artificial-intelligence" },
         { name: "Robotics", path: "/robotics-systems" },
         { name: "Blockchain", path: "/blockchain-systems" },
         { name: "Operating Systems", path: "/operating-systems" },
@@ -241,17 +240,15 @@ const Footer = () => {
       links: [
         { name: "University", path: "/university" },
         { name: "Professors", path: "/professors" },
-        { name: "Courses", path: "/courses" },
-        { name: "Community", path: "/community" },
+        { name: "Interns", path: "/intern" },
       ]
     },
     {
       title: "Company",
       links: [
-        { name: "Our Team", path: "/team" },
+        { name: "People", path: "/people" },
         { name: "Our Blogs", path: "/blogs" },
-        { name: "Community", path: "/community" },
-        { name: "Contributions", path: "/contributions" },
+        { name: "Open Source", path: "/opensource" },
       ]
     }
   ];

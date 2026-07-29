@@ -1,194 +1,348 @@
-import React, { useState } from "react";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useUserContext } from "@/contexts/UserContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { Github } from "lucide-react";
+import { apiClient } from "@/services/apiClient";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import PageTransition from "@/components/PageTransition";
-import logoImg from "@/assets/logo.svg";
+import logoSvg from "@/assets/logo.svg";
+import { LoginComponent } from "./LoginComponent";
+import { SignupComponent } from "./SignupComponent";
+import { ConnectAuth } from "./ConnectAuth";
 
-const GoogleIcon = () => (
-  <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
-    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-  </svg>
-);
+type Mode = "login" | "signup" | "connect" | "forgot" | "verify" | "reset";
+const MODES: Mode[] = ["login", "signup", "connect", "forgot", "verify", "reset"];
 
-const MicrosoftIcon = () => (
-  <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
-    <path d="M11.4 11.4H0V0h11.4v11.4z" fill="#F25022" />
-    <path d="M24 11.4H12.6V0H24v11.4z" fill="#7FBA00" />
-    <path d="M11.4 24H0V12.6h11.4V24z" fill="#00A4EF" />
-    <path d="M24 24H12.6V12.6H24V24z" fill="#FFB900" />
-  </svg>
-);
+const fieldClass =
+  "bg-white/[0.06] border-white/15 text-white placeholder:text-gray-500 h-11 focus-visible:ring-offset-0";
 
 const Auth = () => {
-  const [loginData, setLoginData] = useState({
-    email: "",
-    password: "",
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawMode = searchParams.get("mode") as Mode | null;
+  const mode: Mode = rawMode && MODES.includes(rawMode) ? rawMode : "login";
   const redirectTo = searchParams.get("redirect");
+
   const { updateLoginHistory } = useUserContext();
   const { login } = useAuth();
 
-  const handleLoginSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [forgotForm, setForgotForm] = useState({
+    email: "",
+    code: "",
+    password: "",
+    confirm: "",
+  });
+
+  const setMode = (next: Mode) => {
     setError(null);
+    const params = new URLSearchParams(searchParams);
+    params.set("mode", next);
+    setSearchParams(params, { replace: false });
+  };
 
+  const brandName = useMemo(() => {
+    const path = window.location.pathname.toLowerCase();
+    if (path.includes("cloud")) return "Anoneurx Cloud";
+    if (path.includes("apps") || path.includes("store")) return "Anoneurx Store";
+    if (path.includes("blackwall")) return "Black Wall";
+    if (path.includes("nexora")) return "Nexora";
+    return "Anoneurx";
+  }, []);
+
+  const finishLogin = (data: any, emailInput?: string, nameInput?: string) => {
+    const user = {
+      _id: data._id,
+      email: data.email ?? emailInput ?? "",
+      name: data.name ?? nameInput ?? emailInput ?? "User",
+      roles: data.roles || (data.role ? [data.role] : ["user"]),
+    };
+    login(user, data.token);
+    updateLoginHistory(user.email);
+    toast({ title: "Welcome back", description: `Signed in as ${user.name}.` });
+    navigate(redirectTo ? decodeURIComponent(redirectTo) : "/dashboard");
+  };
+
+  const handleLoginSubmit = async ({
+    email,
+    password,
+    keepSignedIn,
+  }: {
+    email: string;
+    password?: string;
+    keepSignedIn?: boolean;
+  }) => {
+    setError(null);
+    setLoading(true);
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(loginData)
+      const data = await apiClient.post<any>("/auth/login", {
+        email,
+        password,
+        remember: keepSignedIn,
       });
-
-      const data = await response.json();
-
-      if (response.ok && data.token) {
-        const user = {
-          _id: data._id,
-          email: data.email,
-          name: data.name,
-          roles: data.roles || [data.role]
-        };
-
-        login(user, data.token);
-        updateLoginHistory(loginData.email);
-
-        toast({
-          title: "Login Successful!",
-          description: `Welcome back, ${user.name}!`,
-        });
-
-        navigate(redirectTo ? decodeURIComponent(redirectTo) : "/dashboard");
-      } else {
-        setError(data.message || "Invalid email or password.");
-        toast({
-          title: "Login Failed",
-          description: data.message || "Please check your credentials.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      setError("Network error. Please try again.");
-      toast({
-        title: "Connection Error",
-        description: "Unable to connect to server.",
-        variant: "destructive",
-      });
+      if (!data?.token) throw new Error(data?.message || "Invalid email or password.");
+      finishLogin(data, email);
+    } catch (err: any) {
+      const msg = err?.message || "Invalid email or password.";
+      setError(msg);
+      throw new Error(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  const brandMap = {
-    cloud: "ANONEURX CLOUD",
-    apps: "ANONEURX STORE",
+  const handleSignupSubmit = async ({
+    email,
+    password,
+    name,
+  }: {
+    email: string;
+    password: string;
+    name: string;
+  }) => {
+    setError(null);
+    setLoading(true);
+    try {
+      await apiClient.post("/auth/signup", { name, email, password });
+      toast({ title: "Account created", description: "Check your inbox for a verification code." });
+    } catch (err: any) {
+      const msg = err?.message || "Failed to create account.";
+      setError(msg);
+      throw new Error(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getBrandName = () => {
-    const path = window.location.pathname.toLowerCase();
-    if (path.includes('cloud')) return brandMap.cloud;
-    if (path.includes('apps') || path.includes('store')) return brandMap.apps;
-    return "ANONEURX";
+  const handleVerifySubmit = async ({ email, code }: { email: string; code: string }) => {
+    setError(null);
+    setLoading(true);
+    try {
+      await apiClient.post("/auth/verify", { email, code });
+      toast({ title: "Verified", description: "Your email is confirmed." });
+      setMode("login");
+    } catch (err: any) {
+      const msg = err?.message || "Verification failed.";
+      setError(msg);
+      throw new Error(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const brandName = getBrandName();
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      await apiClient.post("/auth/forgot-password", { email: forgotForm.email });
+      toast({ title: "Code sent", description: `We emailed a code to ${forgotForm.email}.` });
+      setMode("verify");
+    } catch (err: any) {
+      setError(err?.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (forgotForm.password !== forgotForm.confirm) {
+      setError("Passwords do not match.");
+      return;
+    }
+    setError(null);
+    setLoading(true);
+    try {
+      await apiClient.post("/auth/reset-password", {
+        email: forgotForm.email,
+        code: forgotForm.code,
+        password: forgotForm.password,
+      });
+      toast({ title: "Password updated", description: "You can sign in with your new password." });
+      setMode("login");
+    } catch (err: any) {
+      setError(err?.message || "Failed to reset password.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSocial = async (provider: "github" | "google" | "microsoft") => {
+    try {
+      const data = await apiClient.get<{ url?: string }>(`/auth/oauth/${provider}`);
+      if (data?.url) {
+        window.location.href = data.url;
+        return;
+      }
+      throw new Error("No redirect URL returned.");
+    } catch {
+      toast({
+        title: `${provider[0].toUpperCase()}${provider.slice(1)} sign-in`,
+        description: "This provider isn't configured yet.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <PageTransition>
-      <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
-        <div className="max-w-md w-full">
-          <Card className="glass backdrop-blur-md bg-white/5 border border-white/10 overflow-hidden shadow-2xl">
-            <CardHeader className="text-center pb-2 pt-8">
-              <div className="flex flex-col items-center mb-6">
-                <img src={logoImg} alt="Logo" className="w-20 h-20 mb-4 animate-scale-in object-contain" />
-                <h3 className="text-xl font-brand text-white tracking-[0.2em] animate-fade-in text-center px-4">
-                  WELCOME TO {brandName}
-                </h3>
-                <p className="text-gray-400 text-sm mt-3">Access your professional workspace</p>
-              </div>
-            </CardHeader>
+      <div className="min-h-screen flex items-center justify-center px-4 py-16">
+        <div className="w-full max-w-[440px]">
+          <div className="glass backdrop-blur-2xl bg-white/[0.04] border border-white/10 rounded-2xl shadow-2xl px-7 py-9 sm:px-10">
+            {mode === "login" && (
+              <LoginComponent
+                brandName={brandName}
+                loading={loading}
+                error={error}
+                onNavigateToSignup={() => setMode("signup")}
+                onNavigateToForgot={() => setMode("forgot")}
+                onNavigateToConnect={() => setMode("connect")}
+                onSubmitLogin={handleLoginSubmit}
+                onSocialLogin={handleSocial}
+              />
+            )}
 
-            <CardContent className="space-y-6">
-              <form onSubmit={handleLoginSubmit} className="space-y-4">
-                <div className="space-y-1.5">
+            {mode === "signup" && (
+              <SignupComponent
+                brandName={brandName}
+                loading={loading}
+                error={error}
+                onNavigateToLogin={() => setMode("login")}
+                onSubmitSignup={handleSignupSubmit}
+                onVerifyCode={handleVerifySubmit}
+              />
+            )}
+
+            {mode === "connect" && <ConnectAuth />}
+
+            {mode === "forgot" && (
+              <div>
+                <div className="flex flex-col items-center justify-center text-center mb-6">
+                  <img src={logoSvg} alt="Anoneurx" className="w-16 h-16 object-contain mb-2" />
+                  <div className="text-xl font-brand tracking-wider text-white font-semibold">{brandName}</div>
+                </div>
+
+                <h1 className="text-2xl font-semibold text-white mb-1.5">Reset password</h1>
+                <p className="text-sm text-gray-400 mb-7">Enter your email and we'll send a verification code.</p>
+
+                <form onSubmit={handleForgotSubmit} className="space-y-4">
                   <Input
                     type="email"
-                    id="login-email"
-                    placeholder="Enter your email"
-                    className="bg-white/10 text-white placeholder:text-gray-400"
-                    value={loginData.email}
-                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                    placeholder="you@example.com"
+                    value={forgotForm.email}
+                    onChange={(e) => setForgotForm({ ...forgotForm, email: e.target.value })}
                     required
+                    className={fieldClass}
                   />
+
+                  {error && <p className="text-sm text-red-400">{error}</p>}
+
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-11 bg-blue-600 hover:bg-blue-500 text-white font-medium"
+                  >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send code"}
+                  </Button>
+                </form>
+              </div>
+            )}
+
+            {mode === "verify" && (
+              <div>
+                <div className="flex flex-col items-center justify-center text-center mb-6">
+                  <img src={logoSvg} alt="Anoneurx" className="w-16 h-16 object-contain mb-2" />
+                  <div className="text-xl font-brand tracking-wider text-white font-semibold">{brandName}</div>
                 </div>
 
-                <div className="space-y-1.5">
+                <h1 className="text-2xl font-semibold text-white mb-1.5">Verify your email</h1>
+                <p className="text-sm text-gray-400 mb-7">Enter the 6-digit code we sent to your inbox.</p>
 
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleVerifySubmit({ email: forgotForm.email, code: forgotForm.code });
+                  }}
+                  className="space-y-4"
+                >
+                  <div className="flex justify-center py-2">
+                    <InputOTP
+                      maxLength={6}
+                      value={forgotForm.code}
+                      onChange={(v) => setForgotForm({ ...forgotForm, code: v })}
+                    >
+                      <InputOTPGroup>
+                        {[0, 1, 2, 3, 4, 5].map((i) => (
+                          <InputOTPSlot key={i} index={i} className="border-white/15 text-white h-11 w-11" />
+                        ))}
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
+
+                  {error && <p className="text-sm text-red-400 text-center">{error}</p>}
+
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-11 bg-blue-600 hover:bg-blue-500 text-white font-medium"
+                  >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify"}
+                  </Button>
+                </form>
+              </div>
+            )}
+
+            {mode === "reset" && (
+              <div>
+                <div className="flex flex-col items-center justify-center text-center mb-6">
+                  <img src={logoSvg} alt="Anoneurx" className="w-16 h-16 object-contain mb-2" />
+                  <div className="text-xl font-brand tracking-wider text-white font-semibold">{brandName}</div>
+                </div>
+
+                <h1 className="text-2xl font-semibold text-white mb-1.5">New password</h1>
+                <p className="text-sm text-gray-400 mb-7">Choose a strong password you haven't used before.</p>
+
+                <form onSubmit={handleResetSubmit} className="space-y-4">
                   <Input
                     type="password"
-                    id="login-password"
-                    placeholder="Enter your password"
-                    className="bg-white/10 text-white placeholder:text-gray-400"
-                    value={loginData.password}
-                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                    placeholder="New password"
+                    value={forgotForm.password}
+                    onChange={(e) => setForgotForm({ ...forgotForm, password: e.target.value })}
                     required
+                    className={fieldClass}
                   />
-                  <div className="flex justify-end px-1">
-                    <a href="#" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">Forgot password?</a>
-                  </div>
-                </div>
+                  <Input
+                    type="password"
+                    placeholder="Confirm new password"
+                    value={forgotForm.confirm}
+                    onChange={(e) => setForgotForm({ ...forgotForm, confirm: e.target.value })}
+                    required
+                    className={fieldClass}
+                  />
 
-                {error && (
-                  <p className="text-red-500 text-sm text-center">{error}</p>
-                )}
+                  {error && <p className="text-sm text-red-400">{error}</p>}
 
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white mt-2"
-                  disabled={loading}
-                >
-                  {loading ? "Logging in..." : "Login"}
-                </Button>
-              </form>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-white/10" />
-                </div>
-                {/* <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-[#121212] px-2 text-gray-400">Or continue with</span>
-                </div> */}
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-11 bg-blue-600 hover:bg-blue-500 text-white font-medium"
+                  >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Update password"}
+                  </Button>
+                </form>
               </div>
+            )}
+          </div>
 
-              {/* <div className="flex justify-center gap-3">
-                <Button variant="outline" size="icon" className="w-12 h-12 rounded-xl bg-white/5 border-white/10 hover:bg-white/10 hover:text-white" onClick={() => toast({ title: "Github", description: "Integration coming soon" })}>
-                  <Github className="w-5 h-5" />
-                </Button>
-                <Button variant="outline" size="icon" className="w-12 h-12 rounded-xl bg-white/5 border-white/10 hover:bg-white/10" onClick={() => toast({ title: "Google", description: "Integration coming soon" })}>
-                  <GoogleIcon />
-                </Button>
-                <Button variant="outline" size="icon" className="w-12 h-12 rounded-xl bg-white/5 border-white/10 hover:bg-white/10 hover:text-white" onClick={() => toast({ title: "Microsoft", description: "Integration coming soon" })}>
-                  <MicrosoftIcon />
-                </Button>
-              </div> */}
-              {/* <p className="text-center text-xs text-gray-500">
-                New here? <Link to="/pay/signup" className="text-blue-400 hover:text-blue-300">Open a bank account</Link>
-              </p> */}
-            </CardContent>
-          </Card>
+          <p className="text-center text-[11px] text-white/80 mt-6">Protected by Anoneurx Identity</p>
         </div>
       </div>
     </PageTransition>

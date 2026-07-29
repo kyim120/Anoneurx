@@ -1,11 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import SEO from "@/components/SEO";
 import PageTransition from "@/components/PageTransition";
 import Hero from "@/components/home/Hero";
 import ProductSlider from "@/components/home/ProductSlider";
 import Research from "@/components/home/Research";
+import OpenSource from "@/components/home/OpenSource";
 
 export const Home: React.FC = () => {
+  useEffect(() => {
+    document.title = "Anoneurx";
+  }, []);
 
   const jsonLdOrganization = {
     "@context": "https://schema.org",
@@ -17,7 +21,7 @@ export const Home: React.FC = () => {
       "Anoneurx builds innovative software, operating systems, AI, cloud, research, developer tools, and open source technologies.",
     sameAs: [
       "https://github.com/anoneurx",
-      "https://x.com/anoneurx",
+      "https://twitter.com/anoneurx",
       "https://linkedin.com/company/anoneurx",
     ],
     knowsAbout: [

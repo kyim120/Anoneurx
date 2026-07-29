@@ -1,35 +1,41 @@
-import { useMemo, useState } from "react";
 import OSPage from "./OSPage";
 import OSSectionHeader from "./OSSectionHeader";
 import ShowcaseCard from "@/components/cards/ShowcaseCard";
-import { packages } from "./data";
+import { packages, type Pkg } from "./data";
 import { Boxes, Package } from "lucide-react";
+import { useOSCollection } from "./useOSCollection";
+
+const sorts = [
+  { value: "alpha", label: "Alphabetical", compare: (a: Pkg, b: Pkg) => a.name.localeCompare(b.name) },
+  { value: "version", label: "Latest version", compare: (a: Pkg, b: Pkg) => b.version.localeCompare(a.version) },
+];
 
 const OSPackages = () => {
-  const [q, setQ] = useState("");
-  const [reg, setReg] = useState<string>("All");
-  const registries = ["All", "npm", "cargo", "pip", "go"];
-  const filtered = useMemo(
-    () =>
-      packages.filter(
-        (p) => (reg === "All" || p.registry === reg) && `${p.name} ${p.description}`.toLowerCase().includes(q.toLowerCase())
-      ),
-    [q, reg]
-  );
+  const registries = Array.from(new Set(packages.map((p) => p.registry)));
+  const { query, setQuery, sort, setSort, filterValues, setFilter, filtered } = useOSCollection<Pkg>({
+    items: packages,
+    searchKeys: ["name", "description", "registry"],
+    sorts,
+    filters: [{ key: "registry", label: "Registry", values: registries }],
+  });
+
   return (
     <OSPage>
       <OSSectionHeader
         title="Packages"
         subtitle="Published packages across npm, cargo, pip, and Go module registries."
-        search={q}
-        onSearchChange={setQ}
         icon={Boxes}
+        search={query}
+        onSearchChange={setQuery}
+        placeholder="Search packages"
+        sorts={sorts}
+        sortValue={sort}
+        onSortChange={setSort}
+        filters={[{ key: "registry", label: "Registry", values: registries }]}
+        filterValues={filterValues}
+        onFilterChange={setFilter}
+        resultsCount={filtered.length}
       />
-      <div className="mb-6 flex flex-wrap gap-2">
-        {registries.map((r) => (
-          <button key={r} onClick={() => setReg(r)} className={`rounded-full border px-3 py-1 text-xs ${reg === r ? "border-neutral-900 bg-neutral-900 text-white dark:border-neutral-100 dark:bg-neutral-100 dark:text-neutral-900" : "border-neutral-300 dark:border-neutral-700"}`}>{r}</button>
-        ))}
-      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filtered.map((p, i) => (
           <ShowcaseCard
@@ -47,4 +53,5 @@ const OSPackages = () => {
     </OSPage>
   );
 };
+
 export default OSPackages;

@@ -50,7 +50,7 @@ const ViewInJournal = () => {
   });
 
   const handleReadPaper = (paperId: number) => {
-    navigate(`/read-paper/${paperId}`);
+    navigate(`/read/${paperId}`);
   };
 
   return (
@@ -111,7 +111,7 @@ const ViewInJournal = () => {
             <div className="max-w-7xl mx-auto">
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
                 {filteredPapers.map((paper) => (
-                  <Link key={paper.id} to={`/read-paper/${paper.id}`} className="glass backdrop-blur-md bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 group">
+                  <Link key={paper.id} to={`/read/${paper.id}`} className="glass backdrop-blur-md bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 group">
                     <CardHeader className="p-6">
                       <div className="flex items-start justify-between mb-4">
                         <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">

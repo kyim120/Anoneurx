@@ -41,6 +41,31 @@ const SOFTWARE = (name: string, path: string, description: string, extra: object
   ...extra,
 });
 
+const humanize = (s?: string) =>
+  (s || "")
+    .split("-")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+
+const PERSON = (name: string, path: string, jobTitle: string, department?: string) => ({
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name,
+  url: `${SITE}${path}`,
+  jobTitle,
+  worksFor: { "@type": "Organization", name: "Anoneurx", url: SITE },
+  ...(department ? { memberOf: { "@type": "Organization", name: `Anoneurx ${department}` } } : {}),
+});
+
+const ARTICLE = (id: string, path: string) => ({
+  "@context": "https://schema.org",
+  "@type": "ScholarlyArticle",
+  headline: `Anoneurx Research Paper ${id}`,
+  url: `${SITE}${path}`,
+  publisher: { "@type": "Organization", name: "Anoneurx", url: SITE },
+});
+
 // Exact-path map. For dynamic routes we fall back to pattern matching below.
 const map: Record<string, Entry> = {
   "/": {
@@ -71,7 +96,7 @@ const map: Record<string, Entry> = {
   },
   "/about": { title: "About Anoneurx", description: "Anoneurx is a global software company shipping operating systems, AI, cloud and open source infrastructure for developers." },
   "/contact": { title: "Contact Anoneurx", description: "Get in touch with Anoneurx for partnerships, support, press or general enquiries." },
-  "/team": { title: "Anoneurx Team", description: "Meet the engineers, researchers and designers building Anoneurx across the globe." },
+  "/people": { title: "Anoneurx People", description: "Meet the engineers, researchers and designers of Anoneurx across every department." },
   "/careers": { title: "Careers at Anoneurx", description: "Join Anoneurx — engineering, research, design and operations roles across our global teams." },
   "/careers/join": { title: "Join Anoneurx", description: "Apply to open Anoneurx roles and become part of our global engineering team." },
   "/careers/hackathon": { title: "Anoneurx Hackathon", description: "Compete in the Anoneurx Hackathon — global challenges, prizes and recruitment fast-track." },
@@ -208,14 +233,135 @@ const map: Record<string, Entry> = {
   "/login": { title: "Log in — Anoneurx", description: "Log in to Anoneurx." },
   "/signup": { title: "Create your Anoneurx account", description: "Create a free Anoneurx account." },
   "/reportbug": { title: "Report a Bug — Anoneurx", description: "Report a bug in any Anoneurx product." },
+  "/people": { title: "Anoneurx People", description: "Meet the engineers, researchers and designers of Anoneurx across every department." },
+  "/ceo": {
+    title: "Muhammad Qasim — Founder & CEO of Anoneurx",
+    description: "Meet Muhammad Qasim, founder and CEO of Anoneurx — vision, leadership message, milestones and focus areas.",
+    jsonLd: [
+      PERSON("Muhammad Qasim", "/ceo", "Founder & Chief Executive Officer"),
+      BREADCRUMB([{ name: "Anoneurx", item: "/" }, { name: "CEO", item: "/ceo" }]),
+    ],
+  },
+  "/intern": { title: "Anoneurx Interns", description: "Every Anoneurx intern across AI, Robotics, Cyber Security, Data Science and more." },
+  "/opensource/repos": { title: "Repositories — Anoneurx Open Source", description: "Every public Anoneurx repository — stars, languages, activity and maintainers." },
+  "/opensource/events": { title: "Events — Anoneurx Open Source", description: "Open source events, sprints and release parties from the Anoneurx community." },
+  "/opensource/search": { title: "Search Anoneurx Open Source", description: "Search projects, repositories, libraries, packages, templates and events across Anoneurx open source." },
+  "/pay/open-account": { title: "Anoneurx Pay Account Details", description: "Complete your Anoneurx Pay account details to finish opening your account." },
 };
 
 // Pattern-based fallbacks for dynamic routes
 const patterns: { pattern: string; build: (params: Record<string, string | undefined>) => Entry }[] = [
   { pattern: "/blog/:id", build: (p) => ({ title: `Blog — ${p.id}`, description: "Read this article on the Anoneurx blog.", type: "article" }) },
-  { pattern: "/read-paper/:id", build: (p) => ({ title: `Research Paper — ${p.id}`, description: "Read this paper from Anoneurx Research.", type: "article" }) },
+  {
+    pattern: "/read/:id",
+    build: (p) => ({
+      title: `Research Paper — ${p.id}`,
+      description: "Read this paper from Anoneurx Research — abstract, methodology, results and references.",
+      type: "article",
+      jsonLd: [
+        ARTICLE(String(p.id), `/read/${p.id}`),
+        BREADCRUMB([{ name: "Research", item: "/research" }, { name: "Read", item: `/read/${p.id}` }]),
+      ],
+    }),
+  },
+  {
+    pattern: "/share/:paperId",
+    build: (p) => ({
+      title: `Anoneurx Paper — ${p.paperId}`,
+      description: "Share this Anoneurx research paper — citation, authors and full text.",
+      type: "article",
+      jsonLd: [
+        ARTICLE(String(p.paperId), `/share/${p.paperId}`),
+        BREADCRUMB([{ name: "Research", item: "/research" }, { name: "Share", item: `/share/${p.paperId}` }]),
+      ],
+    }),
+  },
   { pattern: "/team/:name", build: (p) => ({ title: `${p.name} — Anoneurx Team`, description: `Team member profile: ${p.name}.` }) },
   { pattern: "/team/:dept/:name", build: (p) => ({ title: `${p.name} — Anoneurx ${p.dept}`, description: `${p.name} in the ${p.dept} team at Anoneurx.` }) },
+  {
+    pattern: "/people/:name",
+    build: (p) => ({
+      title: `${humanize(p.name)} — Anoneurx`,
+      description: `${humanize(p.name)} at Anoneurx — role, department and focus areas.`,
+      jsonLd: [
+        PERSON(humanize(p.name), `/people/${p.name}`, "Team Member"),
+        BREADCRUMB([{ name: "People", item: "/people" }, { name: humanize(p.name), item: `/people/${p.name}` }]),
+      ],
+    }),
+  },
+  {
+    pattern: "/people/:dept/:name",
+    build: (p) => ({
+      title: `${humanize(p.name)} — Anoneurx ${humanize(p.dept)}`,
+      description: `${humanize(p.name)} works in the ${humanize(p.dept)} department at Anoneurx.`,
+      jsonLd: [
+        PERSON(humanize(p.name), `/people/${p.dept}/${p.name}`, "Team Member", humanize(p.dept)),
+        BREADCRUMB([
+          { name: "People", item: "/people" },
+          { name: humanize(p.dept), item: `/people/${p.dept}` },
+          { name: humanize(p.name), item: `/people/${p.dept}/${p.name}` },
+        ]),
+      ],
+    }),
+  },
+  {
+    pattern: "/faculty/:department/:name",
+    build: (p) => ({
+      title: `${humanize(p.name)} — Anoneurx University ${humanize(p.department)} Faculty`,
+      description: `Faculty profile of ${humanize(p.name)} — education, position, research areas, publications and office hours at Anoneurx University.`,
+      jsonLd: [
+        PERSON(humanize(p.name), `/faculty/${p.department}/${p.name}`, "Professor", humanize(p.department)),
+        BREADCRUMB([
+          { name: "University", item: "/university" },
+          { name: "Professors", item: "/professors" },
+          { name: humanize(p.name), item: `/faculty/${p.department}/${p.name}` },
+        ]),
+      ],
+    }),
+  },
+  {
+    pattern: "/intern/:department/:name",
+    build: (p) => ({
+      title: `${humanize(p.name)} — Anoneurx ${humanize(p.department)} Intern`,
+      description: `Intern profile of ${humanize(p.name)} — bio, internship history, open source contributions, certificates and badges.`,
+      jsonLd: [
+        PERSON(humanize(p.name), `/intern/${p.department}/${p.name}`, "Intern", humanize(p.department)),
+        BREADCRUMB([
+          { name: "Interns", item: "/intern" },
+          { name: humanize(p.department), item: "/intern" },
+          { name: humanize(p.name), item: `/intern/${p.department}/${p.name}` },
+        ]),
+      ],
+    }),
+  },
+  {
+    pattern: "/opensource/projects/:id",
+    build: (p) => ({
+      title: `${humanize(p.id)} — Anoneurx Open Source Project`,
+      description: `README, activity, maintainers and releases for the ${humanize(p.id)} Anoneurx open source project.`,
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        name: humanize(p.id),
+        url: `${SITE}/opensource/projects/${p.id}`,
+        codeRepository: `${SITE}/opensource/repos/${p.id}`,
+      },
+    }),
+  },
+  {
+    pattern: "/opensource/repos/:id",
+    build: (p) => ({
+      title: `${humanize(p.id)} — Anoneurx Repository`,
+      description: `Source, language breakdown, contributors and releases for the ${humanize(p.id)} Anoneurx repository.`,
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        name: humanize(p.id),
+        url: `${SITE}/opensource/repos/${p.id}`,
+        codeRepository: `${SITE}/opensource/repos/${p.id}`,
+      },
+    }),
+  },
   { pattern: "/courses/:courseId", build: (p) => ({ title: `Course — ${p.courseId}`, description: `Details, syllabus and enrolment for the ${p.courseId} course at Anoneurx University.` }) },
   { pattern: "/courses/:courseId/enroll", build: (p) => ({ title: `Enroll — ${p.courseId}`, description: `Enroll in the ${p.courseId} course at Anoneurx University.` }) },
   { pattern: "/community/events/:eventId", build: (p) => ({ title: `Event — ${p.eventId}`, description: `Anoneurx community event: ${p.eventId}.` }) },

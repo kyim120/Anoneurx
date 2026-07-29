@@ -30,17 +30,15 @@ import ShareOverlay from "@/components/ShareOverlay";
 import { toast } from "@/components/ui/sonner";
 
 // Cover image imports
-import coverVwxyz from "@/assets/papers/vwxyz.jpg";
-import coverAbcde from "@/assets/papers/abcde.jpg";
-import coverQmzkl from "@/assets/papers/qmzkl.jpg";
+import researchCover from "@/assets/research.png";
 
 const COVERS: Record<string, string> = {
-  vwxyz: coverVwxyz,
-  abcde: coverAbcde,
-  qmzkl: coverQmzkl,
-  "1": coverVwxyz,
-  "2": coverAbcde,
-  "3": coverQmzkl,
+  vwxyz: researchCover,
+  abcde: researchCover,
+  qmzkl: researchCover,
+  "1": researchCover,
+  "2": researchCover,
+  "3": researchCover,
 };
 
 interface FullContent {
@@ -107,12 +105,12 @@ const resolvePaper = (id: string | undefined): Paper | null => {
   // 1. Search detailedResearchData.papers
   const detailedMatch = detailedResearchData.papers.find(
     (p) =>
-      p.paperId?.toLowerCase() === targetId ||
+      (p as any).paperId?.toLowerCase() === targetId ||
       String((p as any).id) === targetId ||
-      get5LetterId((p as any).id || p.paperId).toLowerCase() === targetId
+      get5LetterId((p as any).id || (p as any).paperId).toLowerCase() === targetId
   );
   if (detailedMatch) {
-    const pid = detailedMatch.paperId || get5LetterId((detailedMatch as any).id || "1");
+    const pid = (detailedMatch as any).paperId || get5LetterId((detailedMatch as any).id || "1");
     return {
       ...detailedMatch,
       paperId: pid,
@@ -271,7 +269,7 @@ const ReadPaper = () => {
 
   const cover = COVERS[paper.paperId];
   const origin = typeof window !== "undefined" ? window.location.origin : "https://anoneurx.com";
-  const shareUrl = `${origin}/read-paper/${paper.paperId}`;
+  const shareUrl = `${origin}/share/read/${paper.paperId}`;
 
   return (
     <PageTransition>
@@ -654,8 +652,10 @@ const ReadPaper = () => {
           {/* Share Modal */}
           {share && (
             <ShareOverlay
-              shareUrl={shareUrl}
+              isOpen={share}
+              url={shareUrl}
               title={paper.title}
+              description={paper.abstract}
               onClose={() => setShare(false)}
             />
           )}

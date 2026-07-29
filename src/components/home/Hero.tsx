@@ -149,7 +149,7 @@ export const Hero: React.FC = () => {
           transition={{ duration: 0.9, delay: 0.3, ease: "easeOut" }}
           className="text-sm sm:text-base md:text-lg text-slate-300 max-w-2xl font-light leading-relaxed tracking-wide text-balance"
         >
-          Building the Future of Software, Artificial Intelligence, Cloud Infrastructure, Research, Operating Systems and Open Source.
+          Engineering software, artificial intelligence, cloud infrastructure, research and operating systems.
         </motion.p>
       </motion.div>
 

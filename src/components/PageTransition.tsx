@@ -12,13 +12,13 @@ const PageTransition = ({ children }: PageTransitionProps) => {
   const location = useLocation();
   const { direction } = useNavigation();
   
-  // Define page order for slide direction
+  // Slide transition only on main marketing pages; others fade in (avoids off-screen blank state).
   const pageOrder = ['/', '/about', '/projects', '/internships', '/contact'];
-  const currentIndex = pageOrder.indexOf(location.pathname);
-  
+  const useSlide = pageOrder.includes(location.pathname);
+
   const slideVariants = {
-    initial: (direction: number) => ({
-      x: direction > 0 ? '100%' : '-100%',
+    initial: (dir: number) => ({
+      x: dir > 0 ? '100%' : '-100%',
       opacity: 0,
       scale: 0.95,
     }),
@@ -27,18 +27,26 @@ const PageTransition = ({ children }: PageTransitionProps) => {
       opacity: 1,
       scale: 1,
     },
-    exit: (direction: number) => ({
-      x: direction > 0 ? '-100%' : '100%',
+    exit: (dir: number) => ({
+      x: dir > 0 ? '-100%' : '100%',
       opacity: 0,
       scale: 1.05,
     }),
   };
 
+  const fadeVariants = {
+    initial: { opacity: 0, y: 12 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -8 },
+  };
+
+  const variants = useSlide ? slideVariants : fadeVariants;
+
   return (
     <motion.div
       key={location.pathname}
       custom={direction}
-      variants={slideVariants}
+      variants={variants}
       initial="initial"
       animate="animate"
       exit="exit"

@@ -1,12 +1,24 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { motion } from "framer-motion";
 import {
   CreditCard, ArrowUpRight, ArrowDownLeft, Plus, Send, TrendingUp, TrendingDown,
-  ShoppingBag, Coffee, Plane, Briefcase, MoreHorizontal, Eye, EyeOff
+  ShoppingBag, Coffee, Plane, Briefcase, MoreHorizontal, Eye, EyeOff,
+  LogOut, User as UserIcon, Settings, ChevronDown
 } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const transactions = [
   { id: 1, type: "out", merchant: "Whole Foods Market", category: "Groceries", icon: ShoppingBag, amount: -82.41, date: "Today" },
@@ -24,7 +36,19 @@ const cards = [
 
 const BankingDashboard = () => {
   const [hideBalance, setHideBalance] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const total = 12480.55 + 950.00;
+
+  const displayName = user?.name || "Alex Demo";
+  const initials = displayName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+
+  const handleLogout = () => {
+    logout();
+    setLogoutOpen(false);
+    navigate("/auth", { replace: true });
+  };
 
   return (
     <section className="px-4 py-10">
@@ -33,12 +57,66 @@ const BankingDashboard = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <p className="text-xs text-gray-500">Welcome back</p>
-            <h1 className="text-xl font-bold">Good evening, Alex</h1>
+            <h1 className="text-xl font-bold">Good evening, {displayName.split(" ")[0]}</h1>
           </div>
-          <Button className="bg-amber-500 hover:bg-amber-400 text-black font-bold">
-            <Plus className="w-4 h-4 mr-1.5" /> Add Money
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button className="bg-amber-500 hover:bg-amber-400 text-black font-bold">
+              <Plus className="w-4 h-4 mr-1.5" /> Add Money
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  aria-label="Account menu"
+                  className="flex items-center gap-2 min-h-11 rounded-full pl-1 pr-2.5 py-1 bg-white/5 border border-white/10 hover:bg-white/10 transition"
+                >
+                  <Avatar className="w-8 h-8">
+                    <AvatarFallback className="bg-amber-500/20 text-amber-300 text-xs font-bold">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="hidden sm:block text-sm font-medium max-w-[140px] truncate">{displayName}</span>
+                  <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="font-normal">
+                  <p className="text-sm font-medium">{displayName}</p>
+                  <p className="text-xs text-muted-foreground truncate">{user?.email || "alex@anoneurx.pay"}</p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate("/pay/open-account")}>
+                  <UserIcon className="w-4 h-4 mr-2" /> Account details
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/dashboard")}>
+                  <Settings className="w-4 h-4 mr-2" /> Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={(e) => { e.preventDefault(); setLogoutOpen(true); }}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <LogOut className="w-4 h-4 mr-2" /> Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
+
+        <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Log out of Anoneurx Pay?</AlertDialogTitle>
+              <AlertDialogDescription>
+                You'll be signed out of this device and returned to the sign-in page.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleLogout}>Log out</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Balance + Quick actions */}
         <div className="grid lg:grid-cols-[1.4fr_1fr] gap-4 mb-6">
